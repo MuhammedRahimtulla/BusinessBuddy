@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Access denied | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="empty-state">
+        <i class="bi bi-shield-lock display-5"></i>
+        <h1 class="mt-2">Access denied</h1>
+        <p>Your role does not allow this action. The attempt has been recorded.</p>
+        <a class="btn btn-outline-primary" th:href="@{/}">Back to the start page</a>
+    </div>
+</main>
+</body>
+</html>

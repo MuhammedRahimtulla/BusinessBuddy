@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>My profile | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head"><div><h1>My profile</h1>
+        <p th:text="|${me.fullName} · ${me.username} · ${#strings.capitalize(#strings.toLowerCase(me.role))}|"></p></div></div>
+    <div class="card form-card"><div class="card-header">Change password</div><div class="card-body">
+        <form th:action="@{/profile/password}" th:object="${form}" method="post" novalidate>
+            <div th:replace="~{fragments/ui :: errors('form')}"></div>
+            <div class="row g-3">
+                <div class="col-md-4"><label class="form-label required" for="currentPassword">Current password</label>
+                    <input class="form-control" type="password" th:field="*{currentPassword}" required autocomplete="current-password"></div>
+                <div class="col-md-4"><label class="form-label required" for="newPassword">New password</label>
+                    <input class="form-control" type="password" th:field="*{newPassword}" minlength="10" required autocomplete="new-password"></div>
+                <div class="col-md-4"><label class="form-label required" for="confirmPassword">Confirm new password</label>
+                    <input class="form-control" type="password" th:field="*{confirmPassword}" required autocomplete="new-password"></div>
+            </div>
+            <p class="form-text">Changing your password ends your other sessions on other devices.</p>
+            <button class="btn btn-primary" type="submit">Change password</button>
+        </form>
+    </div></div>
+</main>
+</body>
+</html>

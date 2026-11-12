@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Dashboard | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div>
+            <h1>Dashboard</h1>
+            <p th:text="|${period.from} to ${period.to}|">Period</p>
+        </div>
+        <form th:replace="~{fragments/ui :: period('/dashboard')}"></form>
+    </div>
+
+    <!--/* Money indicators: Owner and Manager only */-->
+    <div th:if="${canSeeMoney}" class="row g-3 mb-3">
+        <div class="col-6 col-xl-3"><div class="card kpi accent">
+            <div class="label">Revenue (excl. tax)</div>
+            <div class="value" th:text="|${currency} ${@fmt.money(d.profitability.revenue)}|">0</div>
+            <div class="sub" th:text="|Discounts ${@fmt.money(d.profitability.discounts)}|"></div>
+        </div></div>
+        <div class="col-6 col-xl-3"><div class="card kpi">
+            <div class="label">Cost of goods sold</div>
+            <div class="value" th:text="|${currency} ${@fmt.money(d.profitability.cogs)}|">0</div>
+            <div class="sub">From cost snapshots at sale time</div>
+        </div></div>
+        <div class="col-6 col-xl-3"><div class="card kpi accent">
+            <div class="label">Gross profit</div>
+            <div class="value" th:text="|${currency} ${@fmt.money(d.profitability.grossProfit)}|">0</div>
+            <div class="sub" th:text="|Gross margin ${@fmt.pct(d.profitability.grossMargin)}|"></div>
+        </div></div>
+        <div class="col-6 col-xl-3"><div class="card kpi gold">
+            <div class="label">Net operating result</div>
+            <div class="value" th:classappend="${@fmt.negative(d.profitability.netOperatingResult)} ? 'text-negative'"
+                 th:text="|${currency} ${@fmt.money(d.profitability.netOperatingResult)}|">0</div>
+            <div class="sub" th:text="|After expenses of ${@fmt.money(d.profitability.operatingExpenses)}|"></div>
+        </div></div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-xl-3" th:if="${canSeeMoney}"><div class="card kpi">
+            <div class="label">Inventory value</div>
+            <div class="value" th:text="|${currency} ${@fmt.money(d.inventoryValue['total'])}|">0</div>
+            <div class="sub">At weighted-average cost</div>
+        </div></div>
+        <div class="col-6 col-xl-3"><div class="card kpi">
+            <div class="label">Active products</div><div class="value" th:text="${d.activeProducts}">0</div>
+        </div></div>
+        <div class="col-6 col-xl-3"><div class="card kpi">
+            <div class="label">Active ingredients</div><div class="value" th:text="${d.activeIngredients}">0</div>
+        </div></div>
+        <div class="col-6 col-xl-3"><div class="card kpi">
+            <div class="label">Items below minimum</div>
+            <div class="value" th:classappend="${d.lowIngredients.size() + d.lowProducts.size() > 0} ? 'text-negative'"
+                 th:text="${d.lowIngredients.size() + d.lowProducts.size()}">0</div>
+        </div></div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-xl-8" th:if="${canSeeMoney}">
+            <div class="card mb-3">
+                <div class="card-header">Revenue, gross profit and expenses by month</div>
+                <div class="card-body chart-box">
+                    <canvas class="bb-chart" data-type="bar" aria-label="Monthly revenue, gross profit and expenses" role="img"
+                            th:data-labels="${#strings.listJoin(d.trend.![month], '|')}"
+                            data-s1-label="Revenue" th:data-s1="${#strings.listJoin(d.trend.![revenue], '|')}"
+                            data-s2-label="Gross profit" th:data-s2="${#strings.listJoin(d.trend.![grossProfit], '|')}"
+                            data-s3-label="Expenses" th:data-s3="${#strings.listJoin(d.trend.![expenses], '|')}"></canvas>
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">Top products by gross profit</div>
+                        <table class="table table-sm">
+                            <thead><tr><th>Product</th><th class="num">Gross profit</th><th class="num">Margin</th></tr></thead>
+                            <tbody>
+                            <tr th:each="r : ${d.topProfit}">
+                                <td th:text="${r.name}"></td>
+                                <td class="num" th:text="${@fmt.money(r.grossProfit)}"></td>
+                                <td class="num" th:text="${@fmt.pct(r.grossMargin)}"></td>
+                            </tr>
+                            <tr th:if="${d.topProfit.isEmpty()}"><td colspan="3" class="empty-state">No confirmed sales in this period.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">Top-selling products</div>
+                        <table class="table table-sm">
+                            <thead><tr><th>Product</th><th class="num">Units</th><th class="num">Revenue</th></tr></thead>
+                            <tbody>
+                            <tr th:each="r : ${d.topSelling}">
+                                <td th:text="${r.name}"></td>
+                                <td class="num" th:text="${@fmt.qty(r.units)}"></td>
+                                <td class="num" th:text="${@fmt.money(r.revenue)}"></td>
+                            </tr>
+                            <tr th:if="${d.topSelling.isEmpty()}"><td colspan="3" class="empty-state">No confirmed sales in this period.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:class="${canSeeMoney} ? 'col-xl-4' : 'col-12'">
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between">
+                    <span>Low stock <span class="badge badge-observed">Observed</span></span>
+                    <a th:href="@{/ingredients(low=true)}">View all</a>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between" th:each="i : ${d.lowIngredients}">
+                        <a th:href="@{/ingredients/{id}(id=${i.id})}" th:text="${i.name}">Flour</a>
+                        <span class="text-negative" th:text="|${@fmt.qty(i.currentQuantity)} / ${@fmt.qty(i.minStockLevel)} ${i.baseUnit.code}|"></span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between" th:each="p : ${d.lowProducts}">
+                        <a th:href="@{/products/{id}(id=${p.id})}" th:text="${p.name}">Cake</a>
+                        <span class="text-negative" th:text="|${@fmt.qty(p.currentQuantity)} / ${@fmt.qty(p.minStockLevel)}|"></span>
+                    </li>
+                    <li class="list-group-item empty-state" th:if="${d.lowIngredients.isEmpty() and d.lowProducts.isEmpty()}">All items are above their minimum.</li>
+                </ul>
+            </div>
+
+            <div class="card mb-3 estimate-panel" th:if="${canSeeMoney}">
+                <div class="card-header d-flex justify-content-between">
+                    <span>Next 7 days <span th:replace="~{fragments/ui :: estimate}"></span></span>
+                    <a th:href="@{/forecasts}">Forecasts</a>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item" th:each="f : ${d.forecastSummary}">
+                        <span th:text="${f.product.name}"></span>: about
+                        <strong th:text="${@fmt.whole(f.nextWeekUnits)}"></strong> units
+                        <div class="small text-muted" th:text="|Model ${f.modelName}, data to ${f.cutoff}|"></div>
+                    </li>
+                    <li class="list-group-item" th:each="s : ${d.stockoutSoon}">
+                        <span th:text="${s.ingredient.name}"></span> may run out
+                        <strong th:text="${@fmt.runOut(s.predictedValue)}"></strong>
+                    </li>
+                    <li class="list-group-item empty-state" th:if="${d.forecastSummary.isEmpty() and d.stockoutSoon.isEmpty()}">
+                        No forecasts yet. Run them from the Forecasts page.</li>
+                </ul>
+            </div>
+
+            <div class="card mb-3" th:if="${canSeeMoney}">
+                <div class="card-header">Insights</div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item" th:each="ins : ${d.insights}">
+                        <span class="badge me-1" th:classappend="${ins.nature.name() == 'PREDICTED'} ? 'badge-predicted' : 'badge-calculated'"
+                              th:text="${ins.nature.name() == 'PREDICTED'} ? 'Estimate' : 'Calculated'"></span>
+                        <span th:text="${ins.text}"></span>
+                    </li>
+                    <li class="list-group-item empty-state" th:if="${d.insights.isEmpty()}">No insights for this period.</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Recent sales</div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between" th:each="s : ${d.recentSales}">
+                        <a th:href="@{/sales/{id}(id=${s.id})}" th:text="${s.saleNumber}"></a>
+                        <span class="text-muted small" th:text="${@fmt.dateTime(s.saleDate, zone)}"></span>
+                        <span th:if="${canSeeMoney}" th:text="${@fmt.money(s.total)}"></span>
+                    </li>
+                    <li class="list-group-item empty-state" th:if="${d.recentSales.isEmpty()}">No sales yet.</li>
+                </ul>
+            </div>
+            <div class="card mt-3" th:if="${canSeeMoney}">
+                <div class="card-header">Recent purchases</div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between" th:each="p : ${d.recentPurchases}">
+                        <a th:href="@{/purchases/{id}(id=${p.id})}" th:text="${p.referenceNo}"></a>
+                        <span class="small text-muted" th:text="${p.supplier.name}"></span>
+                        <span th:text="${@fmt.money(p.totalAmount)}"></span>
+                    </li>
+                    <li class="list-group-item empty-state" th:if="${d.recentPurchases.isEmpty()}">No purchases received yet.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

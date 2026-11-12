@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Log in | BusinessBuddy</title>
+    <link rel="icon" th:href="@{/images/logo.svg}" type="image/svg+xml">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="auth-wrap">
+    <section class="auth-hero">
+        <img th:src="@{/images/logo.svg}" alt="" width="48" height="48" class="mb-3">
+        <h1>BusinessBuddy</h1>
+        <p class="lead">AI-Powered Business Cost and Inventory Management System</p>
+        <p>Know your true product cost, keep stock under control and price with confidence.
+            <span class="gold">Forecasts are always labelled as estimates.</span></p>
+    </section>
+    <section class="auth-form">
+        <div class="card">
+            <div class="card-body p-4">
+                <h2 class="mb-3">Log in to BusinessBuddy</h2>
+                <div th:if="${param.error}" class="alert alert-danger" role="alert">Invalid email or password.</div>
+                <div th:if="${param.locked}" class="alert alert-warning" role="alert">Too many failed attempts. Try again later.</div>
+                <div th:if="${param.logout}" class="alert alert-info" role="status">You have been logged out.</div>
+                <div th:if="${param.expired}" class="alert alert-info" role="status">Your session has ended. Please log in again.</div>
+                <div th:if="${successMessage}" class="alert alert-success" role="status" th:text="${successMessage}"></div>
+                <form th:action="@{/login}" method="post" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label required" for="username">Email</label>
+                        <input class="form-control" type="email" id="username" name="username" required autocomplete="username" autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required" for="password">Password</label>
+                        <input class="form-control" type="password" id="password" name="password" required autocomplete="current-password">
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit">Log in</button>
+                </form>
+                <p class="mt-3 mb-0 text-center">New business? <a th:href="@{/register}">Register your business</a></p>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Reports | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head"><div><h1>Reports</h1><p>All figures come from stored transaction values. CSV exports are recorded in the audit log.</p></div></div>
+    <div class="row g-3">
+        <div class="col-md-6 col-xl-4"><div class="card h-100"><div class="card-body">
+            <h2><i class="bi bi-cash-coin"></i> Profitability</h2><p>Revenue, cost of goods sold, gross profit, expenses and net operating result, with per-product profitability.</p>
+            <a th:href="@{/reports/profitability}">Open report</a></div></div></div>
+        <div class="col-md-6 col-xl-4"><div class="card h-100"><div class="card-body">
+            <h2><i class="bi bi-cart-check"></i> Sales</h2><p>Sales by payment method and product; voided sales listed separately.</p>
+            <a th:href="@{/reports/sales}">Open report</a></div></div></div>
+        <div class="col-md-6 col-xl-4"><div class="card h-100"><div class="card-body">
+            <h2><i class="bi bi-wallet2"></i> Expenses</h2><p>Operating expenses by category and month.</p>
+            <a th:href="@{/reports/expenses}">Open report</a></div></div></div>
+        <div class="col-md-6 col-xl-4"><div class="card h-100"><div class="card-body">
+            <h2><i class="bi bi-box-seam"></i> Inventory balances</h2><p>Quantity, average cost and value of every item.</p>
+            <a th:href="@{/reports/inventory}">Open report</a></div></div></div>
+        <div class="col-md-6 col-xl-4"><div class="card h-100"><div class="card-body">
+            <h2><i class="bi bi-receipt"></i> Purchases</h2><p>Received purchases by supplier and period.</p>
+            <a th:href="@{/reports/purchases}">Open report</a></div></div></div>
+        <div class="col-md-6 col-xl-4"><div class="card h-100"><div class="card-body">
+            <h2><i class="bi bi-calculator"></i> Product costing</h2><p>Current unit cost, price, margin and markup of every product.</p>
+            <a th:href="@{/reports/costing}">Open report</a></div></div></div>
+        <div class="col-md-6 col-xl-4"><div class="card h-100"><div class="card-body">
+            <h2><i class="bi bi-check2-square"></i> Stock reconciliation</h2><p>Compares each item's stock with the total of its ledger movements.</p>
+            <a th:href="@{/reports/reconciliation}">Open report</a></div></div></div>
+        <div class="col-md-6 col-xl-4"><div class="card h-100 estimate-panel"><div class="card-body">
+            <h2><i class="bi bi-graph-up-arrow"></i> Forecasts and model evaluation</h2><p>Forecast against actual units, stockout estimates and model errors.</p>
+            <a th:href="@{/forecasts}">Open forecasts</a></div></div></div>
+    </div>
+</main>
+</body>
+</html>

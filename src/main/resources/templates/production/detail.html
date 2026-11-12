@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Batch | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1 th:text="|Batch: ${batch.product.name}|">Batch</h1>
+            <p><span th:text="${@fmt.date(batch.productionDate)}"></span> · recipe v<span th:text="${batch.recipeVersion.versionNo}"></span> ·
+                <span class="status" th:classappend="'status-' + ${batch.status}" th:text="${batch.status}"></span></p></div>
+        <form sec:authorize="hasAnyRole('OWNER','MANAGER')" th:if="${batch.status.name() == 'DRAFT'}"
+              th:action="@{/production/{id}/cancel(id=${batch.id})}" method="post" data-confirm="Cancel this draft batch?">
+            <button class="btn btn-outline-danger" type="submit">Cancel batch</button></form>
+    </div>
+
+    <!--/* Draft: confirm with actual output and quantities used */-->
+    <div th:if="${batch.status.name() == 'DRAFT'}" class="card"><div class="card-body">
+        <h2>Confirm production</h2>
+        <p class="text-muted">Planned output <strong th:text="${@fmt.qty(batch.plannedOutput)}"></strong>.
+            Change a quantity if more or less was actually used; it then replaces the recipe quantity and waste allowance.</p>
+        <form th:action="@{/production/{id}/confirm(id=${batch.id})}" th:object="${confirmForm}" method="post">
+            <div class="table-wrap mb-3">
+                <table class="table table-sm align-middle">
+                    <thead><tr><th>Ingredient</th><th class="num">Recipe quantity incl. waste</th><th class="num">In stock</th><th>Actually used</th></tr></thead>
+                    <tbody>
+                    <tr th:each="p, st : ${planned}">
+                        <td th:text="|${p.ingredient.name} (${p.ingredient.baseUnit.code})|"></td>
+                        <td class="num" th:text="${@fmt.qty(p.plannedQuantity)}"></td>
+                        <td class="num" th:classappend="${p.shortage()} ? 'text-negative'" th:text="${@fmt.qty(p.inStock)}"></td>
+                        <td><input type="hidden" th:field="*{used[__${st.index}__].ingredientId}">
+                            <input class="form-control form-control-sm" type="number" step="0.001" min="0.001" aria-label="Quantity used"
+                                   th:field="*{used[__${st.index}__].quantity}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3"><label class="form-label required" for="actualOutput">Actual output</label>
+                    <input class="form-control" type="number" step="0.001" min="0.001" th:field="*{actualOutput}" required></div>
+                <div class="col-md-6"><label class="form-label" for="wasteNotes">Waste or loss notes</label>
+                    <input class="form-control" th:field="*{wasteNotes}" maxlength="300"></div>
+                <div class="col-md-3"><button class="btn btn-primary w-100" type="submit">Confirm batch</button></div>
+            </div>
+        </form>
+    </div></div>
+
+    <!--/* Confirmed: show consumption and cost snapshot */-->
+    <th:block th:if="${batch.status.name() == 'CONFIRMED'}">
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-md-3"><div class="card kpi accent"><div class="label">Actual output</div>
+                <div class="value" th:text="${@fmt.qty(batch.actualOutput)}"></div></div></div>
+            <div class="col-6 col-md-3" th:if="${canSeeMoney}"><div class="card kpi"><div class="label">Batch cost</div>
+                <div class="value" th:text="${@fmt.money(batch.totalCost)}"></div></div></div>
+            <div class="col-6 col-md-3" th:if="${canSeeMoney}"><div class="card kpi gold"><div class="label">Unit cost (snapshot)</div>
+                <div class="value" th:text="${@fmt.cost(batch.unitCost)}"></div></div></div>
+        </div>
+        <div class="table-wrap">
+            <table class="table table-sm">
+                <thead><tr><th>Ingredient consumed</th><th class="num">Quantity (base unit)</th>
+                    <th class="num" th:if="${canSeeMoney}">Unit cost at confirmation</th><th class="num" th:if="${canSeeMoney}">Line cost</th></tr></thead>
+                <tbody><tr th:each="c : ${batch.consumptions}">
+                    <td th:text="${c.ingredient.name}"></td>
+                    <td class="num" th:text="|${@fmt.qty(c.quantityBase)} ${c.ingredient.baseUnit.code}|"></td>
+                    <td class="num" th:if="${canSeeMoney}" th:text="${@fmt.cost(c.unitCostSnapshot)}"></td>
+                    <td class="num" th:if="${canSeeMoney}" th:text="${@fmt.money(c.lineCost)}"></td></tr></tbody>
+            </table>
+        </div>
+        <p class="mt-2 text-muted" th:if="${batch.wasteNotes}" th:text="${batch.wasteNotes}"></p>
+    </th:block>
+</main>
+</body>
+</html>

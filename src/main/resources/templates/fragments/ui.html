@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--/* Small reusable pieces: form error summary, pagination and the "Estimate" badge. */-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--/* Summary of global (non-field) form errors, shown above a form. */-->
+<div th:fragment="errors(formName)" th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger" role="alert">
+    <p class="mb-0" th:each="err : ${#fields.globalErrors()}" th:text="${err}">Error</p>
+</div>
+
+<!--/* Pagination for a Spring Data Page held in ${page}. */-->
+<nav th:fragment="pager(baseUrl)" th:if="${page.totalPages > 1}" aria-label="Pages">
+    <ul class="pagination pagination-sm">
+        <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+            <a class="page-link" th:href="@{${baseUrl}(page=${page.number - 1})}">Previous</a>
+        </li>
+        <li class="page-item disabled"><span class="page-link"
+            th:text="|Page ${page.number + 1} of ${page.totalPages}|">Page 1 of 2</span></li>
+        <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+            <a class="page-link" th:href="@{${baseUrl}(page=${page.number + 1})}">Next</a>
+        </li>
+    </ul>
+</nav>
+
+<span th:fragment="estimate" class="badge badge-estimate" title="A prediction, not a recorded figure">Estimate</span>
+
+<!--/* Period filter used by reports and lists. */-->
+<form th:fragment="period(action)" class="row g-2 align-items-end period-form" method="get" th:action="@{${action}}">
+    <div class="col-auto">
+        <label class="form-label" for="from">From</label>
+        <input class="form-control form-control-sm" type="date" id="from" name="from" th:value="${period.from}">
+    </div>
+    <div class="col-auto">
+        <label class="form-label" for="to">To</label>
+        <input class="form-control form-control-sm" type="date" id="to" name="to" th:value="${period.to}">
+    </div>
+    <div class="col-auto"><button class="btn btn-sm btn-outline-primary" type="submit">Apply</button></div>
+</form>
+</body>
+</html>

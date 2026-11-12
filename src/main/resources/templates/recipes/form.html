@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Recipe | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head"><div><h1 th:text="|New recipe version: ${product.name}|">Recipe</h1>
+        <p>Saving creates a new version. Earlier versions stay unchanged, so past production keeps its costs.</p></div></div>
+    <form th:action="@{/recipes/new(productId=${product.id})}" th:object="${form}" method="post" novalidate>
+        <div th:replace="~{fragments/ui :: errors('form')}"></div>
+        <div class="row g-3">
+            <div class="col-xl-8">
+                <div class="card mb-3"><div class="card-body row g-3">
+                    <div class="col-md-6"><label class="form-label required" for="name">Recipe name</label>
+                        <input class="form-control" th:field="*{name}" maxlength="120" required th:errorclass="is-invalid">
+                        <div class="invalid-feedback" th:errors="*{name}"></div></div>
+                    <div class="col-md-3"><label class="form-label required" for="batchOutputQty">Batch output</label>
+                        <input class="form-control" type="number" step="0.001" min="0.001" th:field="*{batchOutputQty}" required th:errorclass="is-invalid">
+                        <div class="invalid-feedback" th:errors="*{batchOutputQty}"></div></div>
+                    <div class="col-md-3"><label class="form-label required" for="outputUnitCode">Output unit</label>
+                        <select class="form-select" th:field="*{outputUnitCode}">
+                            <option th:each="u : ${units}" th:value="${u.code}" th:text="${u.code}"></option></select></div>
+                    <div class="col-md-4"><label class="form-label required" for="effectiveFrom">Effective from</label>
+                        <input class="form-control" type="date" th:field="*{effectiveFrom}"></div>
+                    <div class="col-md-8 pt-md-4 form-check ms-2"><input class="form-check-input" type="checkbox" th:field="*{makeActive}">
+                        <label class="form-check-label" th:for="${#ids.prev('makeActive')}">Make this the active version</label></div>
+                </div></div>
+
+                <div class="table-wrap mb-2">
+                    <table class="table lines-table">
+                        <thead><tr><th class="item-col">Ingredient</th><th>Quantity</th><th>Unit</th><th>Waste %</th></tr></thead>
+                        <tbody id="recipe-lines">
+                        <tr th:each="line, st : *{lines}">
+                            <td class="item-col"><select class="form-select form-select-sm" aria-label="Ingredient" th:field="*{lines[__${st.index}__].ingredientId}">
+                                <option value="">Choose an ingredient</option>
+                                <option th:each="i : ${ingredients}" th:value="${i.id}" th:text="|${i.name} (${i.baseUnit.code})|"></option></select></td>
+                            <td><input class="form-control form-control-sm" type="number" step="0.001" min="0.001" aria-label="Quantity"
+                                       th:field="*{lines[__${st.index}__].quantity}"></td>
+                            <td><select class="form-select form-select-sm" aria-label="Unit" th:field="*{lines[__${st.index}__].unitCode}">
+                                <option value="">Base unit</option>
+                                <option th:each="u : ${units}" th:value="${u.code}" th:text="${u.code}"></option></select></td>
+                            <td><input class="form-control form-control-sm" type="number" step="0.01" min="0" max="99.99" aria-label="Waste percent"
+                                       data-default="0" th:field="*{lines[__${st.index}__].wastePercent}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary mb-3" data-add-line="recipe-lines"><i class="bi bi-plus"></i> Add ingredient</button>
+
+                <div class="card mb-3"><div class="card-header">Other costs per batch</div><div class="card-body row g-3">
+                    <div class="col-md-3"><label class="form-label" for="labourCost">Labour</label>
+                        <input class="form-control" type="number" step="0.01" min="0" th:field="*{labourCost}"></div>
+                    <div class="col-md-3"><label class="form-label" for="packagingCost">Packaging</label>
+                        <input class="form-control" type="number" step="0.01" min="0" th:field="*{packagingCost}"></div>
+                    <div class="col-md-3"><label class="form-label" for="utilitiesCost">Utilities</label>
+                        <input class="form-control" type="number" step="0.01" min="0" th:field="*{utilitiesCost}"></div>
+                    <div class="col-md-3"><label class="form-label" for="overheadFixed">Fixed overhead</label>
+                        <input class="form-control" type="number" step="0.01" min="0" th:field="*{overheadFixed}"></div>
+                    <div class="col-md-4"><label class="form-label" for="overheadPercent">Overhead % of ingredient cost</label>
+                        <input class="form-control" type="number" step="0.01" min="0" max="100" th:field="*{overheadPercent}"></div>
+                    <div class="col-md-8"><label class="form-label" for="preparationNotes">Preparation notes</label>
+                        <input class="form-control" th:field="*{preparationNotes}"></div>
+                </div></div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" type="submit" name="action" value="preview">Calculate cost</button>
+                    <button class="btn btn-primary" type="submit" name="action" value="save">Save version</button>
+                    <a class="btn btn-outline-secondary" th:href="@{/products/{id}(id=${product.id})}">Cancel</a>
+                </div>
+            </div>
+
+            <div class="col-xl-4">
+                <div class="card"><div class="card-header">Cost breakdown</div><div class="card-body">
+                    <div th:if="${preview == null}" class="text-muted">Choose "Calculate cost" to see the batch and unit cost.</div>
+                    <th:block th:if="${preview}">
+                        <table class="table table-sm mb-3">
+                            <thead><tr><th>Ingredient</th><th class="num">Qty incl. waste</th><th class="num">Line cost</th></tr></thead>
+                            <tbody><tr th:each="l : ${preview.lines}">
+                                <td th:text="${l.ingredientName}"></td>
+                                <td class="num" th:text="${@fmt.qty(l.quantityWithWaste)}"></td>
+                                <td class="num" th:text="${@fmt.money(l.lineCost)}"></td></tr></tbody>
+                        </table>
+                        <dl class="row cost-breakdown mb-0">
+                            <dt class="col-7">Ingredients</dt><dd class="col-5" th:text="${@fmt.money(preview.ingredientCost)}"></dd>
+                            <dt class="col-7">Labour + packaging</dt><dd class="col-5" th:text="${@fmt.money(preview.labourCost.add(preview.packagingCost))}"></dd>
+                            <dt class="col-7">Utilities + overhead</dt><dd class="col-5" th:text="${@fmt.money(preview.utilitiesCost.add(preview.overheadCost))}"></dd>
+                            <dt class="col-7 fw-bold">Batch cost</dt><dd class="col-5 fw-bold" th:text="${@fmt.money(preview.batchCost)}"></dd>
+                            <dt class="col-7 fw-bold">Unit cost</dt><dd class="col-5 fw-bold" th:text="${@fmt.cost(preview.unitCost)}"></dd>
+                        </dl>
+                        <hr>
+                        <p class="mb-1">Current price (excl. tax): <strong th:text="${@fmt.money(product.sellingPrice)}"></strong></p>
+                        <p class="mb-1" th:text="|Margin ${@fmt.pct(analysis.margin)} · Markup ${@fmt.pct(analysis.markup)}|"></p>
+                        <p class="text-negative mb-0" th:if="${analysis.belowCost}"><i class="bi bi-exclamation-triangle"></i> The current price is below this unit cost.</p>
+                    </th:block>
+                </div></div>
+            </div>
+        </div>
+    </form>
+</main>
+</body>
+</html>

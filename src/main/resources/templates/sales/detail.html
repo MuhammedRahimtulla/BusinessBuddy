@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Sale | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head no-print">
+        <div><h1 th:text="|Sale ${sale.saleNumber}|">Sale</h1>
+            <p><span class="status" th:classappend="'status-' + ${sale.status}" th:text="${sale.status}"></span></p></div>
+        <div class="d-flex gap-2 flex-wrap">
+            <th:block th:if="${sale.status.name() == 'DRAFT'}">
+                <a class="btn btn-outline-primary" th:href="@{/sales/{id}/edit(id=${sale.id})}">Edit</a>
+                <form th:action="@{/sales/{id}/delete(id=${sale.id})}" method="post" data-confirm="Delete this draft sale?">
+                    <button class="btn btn-outline-danger" type="submit">Delete draft</button></form>
+            </th:block>
+            <button class="btn btn-outline-secondary" type="button" id="print-receipt" th:if="${sale.status.name() == 'CONFIRMED'}">
+                <i class="bi bi-printer"></i> Print receipt</button>
+        </div>
+    </div>
+
+    <div class="card receipt mb-3"><div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+            <div><strong th:text="${businessName}"></strong><br>
+                <span th:text="|Sale ${sale.saleNumber}|"></span></div>
+            <div class="text-end"><span th:text="${@fmt.dateTime(sale.saleDate, zone)}"></span><br>
+                <span th:if="${sale.customer}" th:text="${sale.customer.name}"></span></div>
+        </div>
+        <table class="table table-sm">
+            <thead><tr><th>Product</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Discount</th>
+                <th class="num">Tax</th><th class="num">Line total</th></tr></thead>
+            <tbody><tr th:each="i : ${sale.items}">
+                <td th:text="${i.product.name}"></td>
+                <td class="num" th:text="${@fmt.qty(i.quantity)}"></td>
+                <td class="num" th:text="${@fmt.money(i.unitPrice)}"></td>
+                <td class="num" th:text="${@fmt.money(i.discountAmount)}"></td>
+                <td class="num" th:text="${@fmt.money(i.taxAmount)}"></td>
+                <td class="num" th:text="${@fmt.money(i.lineTotal)}"></td></tr></tbody>
+            <tfoot>
+            <tr><th colspan="5" class="num">Subtotal</th><td class="num" th:text="${@fmt.money(sale.subtotal)}"></td></tr>
+            <tr><th colspan="5" class="num">Discounts</th><td class="num" th:text="|-${@fmt.money(sale.discountTotal)}|"></td></tr>
+            <tr><th colspan="5" class="num">Tax</th><td class="num" th:text="${@fmt.money(sale.taxTotal)}"></td></tr>
+            <tr><th colspan="5" class="num">Total</th><td class="num fw-bold" th:text="|${sale.currencyCode} ${@fmt.money(sale.total)}|"></td></tr>
+            </tfoot>
+        </table>
+        <p class="mb-0" th:if="${sale.paymentMethod}" th:text="|Paid by ${#strings.toLowerCase(sale.paymentMethod)}. Recorded by ${sale.recordedBy.fullName}.|"></p>
+        <p class="mb-0 text-muted" th:if="${sale.notes}" th:text="${sale.notes}"></p>
+    </div></div>
+
+    <div class="card receipt mb-3 no-print" th:if="${canSeeMoney and sale.status.name() != 'DRAFT'}"><div class="card-body">
+        <h2>Cost and profit (stored at confirmation)</h2>
+        <table class="table table-sm">
+            <thead><tr><th>Product</th><th class="num">Unit cost snapshot</th><th class="num">Cost of goods sold</th><th class="num">Gross profit</th></tr></thead>
+            <tbody><tr th:each="i : ${sale.items}">
+                <td th:text="${i.product.name}"></td>
+                <td class="num" th:text="${@fmt.cost(i.unitCostSnapshot)}"></td>
+                <td class="num" th:text="${@fmt.money(i.lineCost)}"></td>
+                <td class="num" th:classappend="${i.lineCost != null and i.netAmount.compareTo(i.lineCost) < 0} ? 'text-negative'"
+                    th:text="${i.lineCost == null} ? '-' : ${@fmt.money(i.netAmount.subtract(i.lineCost))}"></td></tr></tbody>
+        </table>
+    </div></div>
+
+    <div class="card receipt no-print" th:if="${sale.status.name() == 'DRAFT'}"><div class="card-body">
+        <h2>Confirm sale</h2>
+        <form th:action="@{/sales/{id}/confirm(id=${sale.id})}" method="post" class="row g-2 align-items-end">
+            <div class="col-auto"><label class="form-label required" for="paymentMethod">Payment method</label>
+                <select class="form-select" id="paymentMethod" name="paymentMethod" required>
+                    <option th:each="m : ${methods}" th:value="${m}" th:text="${m}" th:selected="${m == sale.paymentMethod}"></option></select></div>
+            <div class="col-auto"><button class="btn btn-primary" type="submit">Confirm sale</button></div>
+        </form>
+    </div></div>
+
+    <div class="card receipt no-print" th:if="${sale.status.name() == 'CONFIRMED'}" sec:authorize="hasAnyRole('OWNER','MANAGER')"><div class="card-body">
+        <h2>Void sale</h2>
+        <p class="text-muted">The sale stays in the history, its stock is returned and it is excluded from revenue.</p>
+        <form th:action="@{/sales/{id}/void(id=${sale.id})}" method="post" class="row g-2 align-items-end"
+              data-confirm="Void this sale? This cannot be undone.">
+            <div class="col"><label class="form-label required" for="reason">Reason</label>
+                <input class="form-control" id="reason" name="reason" required maxlength="300"></div>
+            <div class="col-auto"><button class="btn btn-outline-danger" type="submit">Void sale</button></div>
+        </form>
+    </div></div>
+
+    <div class="alert alert-secondary receipt" th:if="${sale.status.name() == 'VOIDED'}">
+        Voided on <span th:text="${@fmt.dateTime(sale.voidedAt, zone)}"></span> by <span th:text="${sale.voidedBy.fullName}"></span>:
+        <span th:text="${sale.voidReason}"></span>
+    </div>
+</main>
+</body>
+</html>

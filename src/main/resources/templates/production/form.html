@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>New batch | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head"><div><h1>New production batch</h1><p>The product's active recipe version is used.</p></div></div>
+    <div class="card form-card"><div class="card-body">
+        <form th:action="@{/production}" th:object="${form}" method="post" novalidate>
+            <div th:replace="~{fragments/ui :: errors('form')}"></div>
+            <div class="row g-3">
+                <div class="col-md-6"><label class="form-label required" for="productId">Product</label>
+                    <select class="form-select" th:field="*{productId}" required th:errorclass="is-invalid">
+                        <option value="">Choose a product</option>
+                        <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.name}"></option></select>
+                    <div class="invalid-feedback" th:errors="*{productId}"></div></div>
+                <div class="col-md-3"><label class="form-label required" for="plannedOutput">Planned output</label>
+                    <input class="form-control" type="number" step="0.001" min="0.001" th:field="*{plannedOutput}" required th:errorclass="is-invalid">
+                    <div class="invalid-feedback" th:errors="*{plannedOutput}"></div></div>
+                <div class="col-md-3"><label class="form-label required" for="productionDate">Production date</label>
+                    <input class="form-control" type="date" th:field="*{productionDate}" required></div>
+                <div class="col-12"><label class="form-label" for="wasteNotes">Notes</label>
+                    <input class="form-control" th:field="*{wasteNotes}" maxlength="300"></div>
+            </div>
+            <div class="mt-3 d-flex gap-2"><button class="btn btn-primary" type="submit">Record batch</button>
+                <a class="btn btn-outline-secondary" th:href="@{/production}">Cancel</a></div>
+        </form>
+    </div></div>
+</main>
+</body>
+</html>

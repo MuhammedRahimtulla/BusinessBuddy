@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Inventory report | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1>Inventory balances</h1>
+            <p th:text="|Total value ${currency} ${@fmt.money(value['total'])} (ingredients ${@fmt.money(value['ingredients'])}, products ${@fmt.money(value['products'])}) at weighted-average cost|"></p></div>
+        <a class="btn btn-sm btn-outline-secondary" th:href="@{/reports/export/inventory}"><i class="bi bi-download"></i> CSV</a>
+    </div>
+    <div class="table-wrap">
+        <table class="table table-sm">
+            <thead><tr><th>Type</th><th>Item</th><th>Category</th><th class="num">Quantity</th><th>Unit</th><th class="num">Minimum</th>
+                <th class="num">Average cost</th><th class="num">Value</th></tr></thead>
+            <tbody><tr th:each="r : ${rows}">
+                <td th:text="${r.type}"></td><td th:text="${r.name}"></td><td th:text="${r.category}"></td>
+                <td class="num" th:classappend="${r.belowMinimum} ? 'text-negative'" th:text="${@fmt.qty(r.quantity)}"></td>
+                <td th:text="${r.unit}"></td><td class="num" th:text="${@fmt.qty(r.minimum)}"></td>
+                <td class="num" th:text="${@fmt.cost(r.averageCost)}"></td><td class="num" th:text="${@fmt.money(r.value)}"></td></tr></tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

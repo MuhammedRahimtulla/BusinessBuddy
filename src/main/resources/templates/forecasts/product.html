@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Demand | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1 th:text="|Demand: ${product.name}|">Demand</h1>
+            <p th:text="|${historyDays} days of sales history. Actual sales are solid; forecasts are dashed and are estimates.|"></p></div>
+        <a class="btn btn-outline-secondary" th:href="@{/forecasts}">Back to forecasts</a>
+    </div>
+    <div class="card estimate-panel"><div class="card-body chart-box">
+        <canvas class="bb-chart" data-type="line" role="img" aria-label="Actual daily units sold and forecast units"
+                th:data-labels="${chartLabels}"
+                data-s1-label="Actual units sold" th:data-s1="${chartActual}"
+                data-s2-label="Forecast (estimate)" data-s2-dashed="true" th:data-s2="${chartForecast}"
+                data-s3-label="Earlier one-day-ahead forecast" data-s3-dashed="true" th:data-s3="${chartPast}"></canvas>
+    </div></div>
+    <div class="table-wrap mt-3" th:unless="${current.isEmpty()}">
+        <table class="table table-sm">
+            <thead><tr><th>Date</th><th class="num">Forecast units</th><th>Model</th><th>Data to</th></tr></thead>
+            <tbody><tr th:each="f : ${current}">
+                <td th:text="${@fmt.date(f.targetDate)}"></td>
+                <td class="num" th:text="${f.predictedValue == null} ? 'Not enough history' : ${@fmt.qty(f.predictedValue)}"></td>
+                <td th:text="${f.modelName}"></td><td th:text="${@fmt.date(f.trainingCutoff)}"></td></tr></tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

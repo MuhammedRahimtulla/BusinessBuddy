@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Production | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1>Production batches</h1><p>Ingredients are consumed when a batch is confirmed, not when the product is sold.</p></div>
+        <a class="btn btn-primary" th:href="@{/production/new}"><i class="bi bi-plus-lg"></i> New batch</a>
+    </div>
+    <form class="row g-2 mb-3" method="get" th:action="@{/production}">
+        <div class="col-auto"><label class="visually-hidden" for="status">Status</label>
+            <select class="form-select" id="status" name="status"><option value="">All statuses</option>
+                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == status}"></option></select></div>
+        <div class="col-auto"><button class="btn btn-outline-primary" type="submit">Filter</button></div>
+    </form>
+    <div class="table-wrap">
+        <table class="table table-hover align-middle">
+            <thead><tr><th>Date</th><th>Product</th><th>Recipe</th><th class="num">Planned</th><th class="num">Actual</th>
+                <th class="num" th:if="${canSeeMoney}">Unit cost</th><th>Status</th><th>By</th></tr></thead>
+            <tbody>
+            <tr th:each="b : ${page.content}">
+                <td><a th:href="@{/production/{id}(id=${b.id})}" th:text="${@fmt.date(b.productionDate)}"></a></td>
+                <td th:text="${b.product.name}"></td>
+                <td th:text="|v${b.recipeVersion.versionNo}|"></td>
+                <td class="num" th:text="${@fmt.qty(b.plannedOutput)}"></td>
+                <td class="num" th:text="${@fmt.qty(b.actualOutput)}"></td>
+                <td class="num" th:if="${canSeeMoney}" th:text="${@fmt.cost(b.unitCost)}"></td>
+                <td><span class="status" th:classappend="'status-' + ${b.status}" th:text="${b.status}"></span></td>
+                <td th:text="${b.producedBy.fullName}"></td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="8" class="empty-state">No batches yet.</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-2" th:insert="~{fragments/ui :: pager('/production' + (${status} != null ? '?status=' + ${status} : ''))}"></div>
+</main>
+</body>
+</html>

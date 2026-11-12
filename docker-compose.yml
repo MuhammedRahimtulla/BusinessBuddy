@@ -1,0 +1,37 @@
+# BusinessBuddy production-style deployment (Figure 4.8): application and PostgreSQL in
+# separate containers on a private network. Only the application port is published, and
+# in production it sits behind an Nginx reverse proxy that terminates HTTPS.
+# Secrets come from the .env file (copy .env.example to .env and fill it in; never commit .env).
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: businessbuddy_db
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d businessbuddy_db"]
+      interval: 10s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://db:5432/businessbuddy_db
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      BUSINESSBUDDY_ADMIN_EMAIL: ${BUSINESSBUDDY_ADMIN_EMAIL}
+      BUSINESSBUDDY_ADMIN_PASSWORD: ${BUSINESSBUDDY_ADMIN_PASSWORD}
+    ports:
+      - "127.0.0.1:8080:8080"     # reachable only from the host (the reverse proxy)
+
+volumes:
+  pgdata:

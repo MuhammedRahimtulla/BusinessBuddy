@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Product costing | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head"><div><h1>Product costing</h1><p>Current estimated unit cost against the current selling price (excluding tax).</p></div></div>
+    <div class="table-wrap"><table class="table table-sm">
+        <thead><tr><th>Product</th><th>Cost source</th><th class="num">Unit cost</th><th class="num">Price</th>
+            <th class="num">Margin</th><th class="num">Markup</th><th></th></tr></thead>
+        <tbody><tr th:each="r : ${rows}">
+            <td><a th:href="@{/products/{id}(id=${r.product.id})}" th:text="${r.product.name}"></a></td>
+            <td th:text="${r.costSource}"></td>
+            <td class="num" th:text="${@fmt.cost(r.unitCost)}"></td><td class="num" th:text="${@fmt.money(r.price)}"></td>
+            <td class="num" th:text="${@fmt.pct(r.margin)}"></td><td class="num" th:text="${@fmt.pct(r.markup)}"></td>
+            <td><span th:if="${r.belowCost}" class="status status-VOIDED">Below cost</span></td></tr></tbody></table></div>
+</main>
+</body>
+</html>

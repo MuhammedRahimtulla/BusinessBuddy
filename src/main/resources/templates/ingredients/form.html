@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Ingredient | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head"><h1 th:text="${id == null} ? 'New ingredient' : 'Edit ingredient'">Ingredient</h1></div>
+    <div class="card form-card"><div class="card-body">
+        <form th:action="${id == null} ? @{/ingredients} : @{/ingredients/{id}(id=${id})}" th:object="${form}" method="post" novalidate>
+            <div th:replace="~{fragments/ui :: errors('form')}"></div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label required" for="name">Name</label>
+                    <input class="form-control" th:field="*{name}" maxlength="120" required th:errorclass="is-invalid">
+                    <div class="invalid-feedback" th:errors="*{name}"></div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="categoryId">Category</label>
+                    <select class="form-select" th:field="*{categoryId}">
+                        <option value="">None</option>
+                        <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label required" for="baseUnitCode">Base unit</label>
+                    <select class="form-select" th:field="*{baseUnitCode}">
+                        <option th:each="u : ${units}" th:value="${u.code}" th:text="|${u.name} (${u.code})|"></option>
+                    </select>
+                    <div class="form-text">Stock and costs are kept in this unit. It cannot change once stock has moved.</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label required" for="minStockLevel">Minimum stock level</label>
+                    <input class="form-control" type="number" step="0.001" min="0" th:field="*{minStockLevel}" th:errorclass="is-invalid">
+                    <div class="invalid-feedback" th:errors="*{minStockLevel}"></div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="reorderQuantity">Reorder quantity</label>
+                    <input class="form-control" type="number" step="0.001" min="0.001" th:field="*{reorderQuantity}" th:errorclass="is-invalid">
+                    <div class="invalid-feedback" th:errors="*{reorderQuantity}"></div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="preferredSupplierId">Preferred supplier</label>
+                    <select class="form-select" th:field="*{preferredSupplierId}">
+                        <option value="">None</option>
+                        <option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}"></option>
+                    </select>
+                </div>
+                <div class="col-md-6 pt-md-4">
+                    <div class="form-check"><input class="form-check-input" type="checkbox" th:field="*{expiryTracked}">
+                        <label class="form-check-label" th:for="${#ids.prev('expiryTracked')}">Track expiry dates on deliveries</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" th:field="*{active}">
+                        <label class="form-check-label" th:for="${#ids.prev('active')}">Active</label></div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="description">Description</label>
+                    <textarea class="form-control" th:field="*{description}" maxlength="500" rows="2"></textarea>
+                </div>
+            </div>
+            <p class="form-text mt-3">Opening stock is entered afterwards as a stock adjustment with the reason "Opening stock", so it appears in the ledger.</p>
+            <div class="mt-3 d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Save</button>
+                <a class="btn btn-outline-secondary" th:href="@{/ingredients}">Cancel</a>
+            </div>
+        </form>
+    </div></div>
+</main>
+</body>
+</html>

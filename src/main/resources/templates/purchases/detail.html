@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Purchase | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1 th:text="|Purchase ${purchase.referenceNo}|">Purchase</h1>
+            <p><span th:text="${purchase.supplier.name}"></span> ·
+                <span th:text="${@fmt.date(purchase.purchaseDate)}"></span> ·
+                <span class="status" th:classappend="'status-' + ${purchase.status}" th:text="${purchase.status}"></span></p></div>
+        <div class="d-flex gap-2" th:if="${purchase.status.name() == 'DRAFT'}">
+            <a class="btn btn-outline-primary" th:href="@{/purchases/{id}/edit(id=${purchase.id})}">Edit</a>
+        </div>
+    </div>
+
+    <div class="table-wrap mb-3">
+        <table class="table">
+            <thead><tr><th>Item</th><th class="num">Quantity</th><th class="num">Unit cost</th><th class="num">Line total</th>
+                <th class="num">Stock quantity</th><th class="num">Landed cost / stock unit</th><th>Expiry</th></tr></thead>
+            <tbody>
+            <tr th:each="i : ${purchase.items}">
+                <td th:text="${i.ingredient != null} ? ${i.ingredient.name} : ${i.product.name}"></td>
+                <td class="num" th:text="|${@fmt.qty(i.quantity)} ${i.unit.code}|"></td>
+                <td class="num" th:text="${@fmt.cost(i.unitCost)}"></td>
+                <td class="num" th:text="${@fmt.money(i.lineTotal)}"></td>
+                <td class="num" th:text="${@fmt.qty(i.baseQuantity)}"></td>
+                <td class="num" th:text="${@fmt.cost(i.landedUnitCost)}"></td>
+                <td th:text="${@fmt.date(i.expiryDate)}"></td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr><th colspan="3" class="num">Subtotal</th><td class="num" th:text="${@fmt.money(purchase.subtotal)}"></td><td colspan="3"></td></tr>
+            <tr><th colspan="3" class="num">Discount</th><td class="num" th:text="|-${@fmt.money(purchase.discountAmount)}|"></td><td colspan="3"></td></tr>
+            <tr><th colspan="3" class="num">Additional costs</th><td class="num" th:text="${@fmt.money(purchase.additionalCosts)}"></td><td colspan="3"></td></tr>
+            <tr><th colspan="3" class="num">Total</th><td class="num fw-bold" th:text="|${purchase.currencyCode} ${@fmt.money(purchase.totalAmount)}|"></td><td colspan="3"></td></tr>
+            </tfoot>
+        </table>
+    </div>
+    <p th:if="${purchase.notes}" class="text-muted" th:text="${purchase.notes}"></p>
+    <p th:if="${purchase.status.name() == 'RECEIVED'}">Received on <strong th:text="${@fmt.date(purchase.receivedDate)}"></strong>
+        by <span th:text="${purchase.receivedBy.fullName}"></span>.</p>
+
+    <div class="row g-3">
+        <div class="col-md-6" th:if="${purchase.status.name() == 'DRAFT'}">
+            <div class="card"><div class="card-body">
+                <h2>Receive goods</h2>
+                <p class="text-muted">Adds each line to stock once and updates the weighted-average cost.</p>
+                <form th:action="@{/purchases/{id}/receive(id=${purchase.id})}" method="post" class="row g-2 align-items-end">
+                    <div class="col-auto"><label class="form-label required" for="receivedDate">Received date</label>
+                        <input class="form-control" type="date" id="receivedDate" name="receivedDate" th:value="${today}"
+                               th:min="${purchase.purchaseDate}" th:max="${today}" required></div>
+                    <div class="col-auto"><button class="btn btn-primary" type="submit">Receive purchase</button></div>
+                </form>
+            </div></div>
+        </div>
+        <div class="col-md-6" th:if="${purchase.status.name() != 'CANCELLED'}">
+            <div class="card"><div class="card-body">
+                <h2>Cancel purchase</h2>
+                <p class="text-muted" th:text="${purchase.status.name() == 'RECEIVED'} ? 'The received stock is reversed at its landed cost. The purchase stays in the history.' : 'The draft is marked as cancelled.'"></p>
+                <form th:action="@{/purchases/{id}/cancel(id=${purchase.id})}" method="post" class="row g-2 align-items-end"
+                      data-confirm="Cancel this purchase? This cannot be undone.">
+                    <div class="col"><label class="form-label required" for="reason">Reason</label>
+                        <input class="form-control" id="reason" name="reason" required maxlength="200"></div>
+                    <div class="col-auto"><button class="btn btn-outline-danger" type="submit">Cancel purchase</button></div>
+                </form>
+            </div></div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

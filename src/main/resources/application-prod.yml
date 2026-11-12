@@ -1,0 +1,22 @@
+# Profile "prod": production server. Every secret must be supplied as an environment variable.
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  flyway:
+    user: ${FLYWAY_USER:${DB_USERNAME}}
+    password: ${FLYWAY_PASSWORD:${DB_PASSWORD}}
+
+server:
+  forward-headers-strategy: native   # behind the Nginx reverse proxy
+  servlet:
+    session:
+      cookie:
+        secure: true
+
+businessbuddy:
+  demo-data: false
+  admin:
+    email: ${BUSINESSBUDDY_ADMIN_EMAIL:}
+    password: ${BUSINESSBUDDY_ADMIN_PASSWORD:}

@@ -1,0 +1,12 @@
+# Profile "dev": a developer's own PostgreSQL server (for example the db container from docker-compose.yml).
+# Credentials come from environment variables; the defaults below are for a local development database only.
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/businessbuddy_db}
+    username: ${DB_USERNAME:businessbuddy}
+    password: ${DB_PASSWORD:}
+  thymeleaf:
+    cache: false
+
+businessbuddy:
+  demo-data: ${BUSINESSBUDDY_DEMO_DATA:false}

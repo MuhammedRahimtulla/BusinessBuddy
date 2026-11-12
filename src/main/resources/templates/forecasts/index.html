@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Forecasts | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1>Forecasts <span th:replace="~{fragments/ui :: estimate}"></span></h1>
+            <p>Forecasts are predictions from past sales. A trained model is only used when it was more accurate than a simple moving average on the most recent 14 days.</p></div>
+        <form th:action="@{/forecasts/run}" method="post"><button class="btn btn-primary" type="submit"><i class="bi bi-arrow-repeat"></i> Run forecasts now</button></form>
+    </div>
+    <div th:if="${sampleData}" class="alert alert-warning">These forecasts are trained on generated sample data. Their accuracy says nothing about a real business.</div>
+
+    <h2>Demand forecast: next 7 days</h2>
+    <div class="table-wrap mb-4 estimate-panel">
+        <table class="table table-sm">
+            <thead><tr><th>Product</th><th>Status</th><th>Model</th><th>Data to</th><th class="num">Next 7 days (units)</th><th>Daily values</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="entry : ${demand}" th:with="list=${entry.value}, first=${entry.value[0]}">
+                <td th:text="${entry.key.name}"></td>
+                <td><span class="status" th:classappend="'status-' + ${first.status}" th:text="${first.status.name() == 'INSUFFICIENT_DATA'} ? 'Not enough history' : 'Estimate'"></span></td>
+                <td th:text="${first.modelName}"></td>
+                <td th:text="${@fmt.date(first.trainingCutoff)}"></td>
+                <td class="num" th:text="${first.predictedValue == null} ? '-' : ${@fmt.whole(#aggregates.sum(list.![predictedValue]))}"></td>
+                <td class="small" th:text="${first.predictedValue == null} ? 'A reliable forecast needs at least 56 days of sales history.' : ${#strings.listJoin(list.![@fmt.oneDecimal(predictedValue)], ' · ')}"></td>
+                <td><a th:href="@{/forecasts/product/{id}(id=${entry.key.id})}">Chart</a></td>
+            </tr>
+            <tr th:if="${demand.isEmpty()}"><td colspan="7" class="empty-state">No forecasts yet. Choose "Run forecasts now".</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Ingredient stockout estimates</h2>
+    <div class="table-wrap mb-4 estimate-panel">
+        <table class="table table-sm">
+            <thead><tr><th>Ingredient</th><th class="num">In stock</th><th class="num">Estimated days left</th><th>Estimated run-out date</th><th>Method</th></tr></thead>
+            <tbody>
+            <tr th:each="f : ${stockout}">
+                <td th:text="${f.ingredient.name}"></td>
+                <td class="num" th:text="|${@fmt.qty(f.ingredient.currentQuantity)} ${f.ingredient.baseUnit.code}|"></td>
+                <td class="num" th:classappend="${@fmt.atMost(f.predictedValue, 7)} ? 'text-negative'"
+                    th:text="${f.predictedValue == null} ? 'Not enough usage history' : ${@fmt.oneDecimal(f.predictedValue)}"></td>
+                <td th:text="${f.predictedValue == null} ? '-' : ${@fmt.date(f.targetDate)}"></td>
+                <td class="small">Stock ÷ average daily use over the last 28 days</td>
+            </tr>
+            <tr th:if="${stockout.isEmpty()}"><td colspan="5" class="empty-state">No ingredient has recent usage.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Model evaluation</h2>
+    <p class="text-muted">Errors are measured in units per day on the held-out test period, which is always later than the training period. Lower is better.</p>
+    <div class="table-wrap">
+        <table class="table table-sm">
+            <thead><tr><th>Product</th><th>Training period</th><th>Test period</th><th class="num">Days</th>
+                <th class="num">Model MAE</th><th class="num">Model RMSE</th><th class="num">Baseline MAE</th><th class="num">Baseline RMSE</th><th>Selected</th></tr></thead>
+            <tbody>
+            <tr th:each="e, st : ${evaluations}" th:if="${st.index < 30}">
+                <td th:text="${e.product?.name}"></td>
+                <td th:text="|${e.trainStart} to ${e.trainEnd}|"></td>
+                <td th:text="|${e.testStart} to ${e.testEnd}|"></td>
+                <td class="num" th:text="${e.sampleDays}"></td>
+                <td class="num" th:text="${e.mae}"></td><td class="num" th:text="${e.rmse}"></td>
+                <td class="num" th:text="${e.baselineMae}"></td><td class="num" th:text="${e.baselineRmse}"></td>
+                <td th:text="${e.selectedModel}"></td>
+            </tr>
+            <tr th:if="${evaluations.isEmpty()}"><td colspan="9" class="empty-state">No evaluations yet.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# Profile "test": a fresh embedded PostgreSQL per test run, schema created by Flyway.
+businessbuddy:
+  demo-data: false
+  jobs:
+    nightly-cron: "-"     # disable scheduled jobs; tests call the jobs directly
+
+logging:
+  level:
+    io.zonky: WARN
+    org.flywaydb: WARN

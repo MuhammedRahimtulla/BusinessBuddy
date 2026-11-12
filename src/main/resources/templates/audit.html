@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Audit log | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head"><div><h1>Audit log</h1><p>An append-only record of important actions. Entries cannot be changed.</p></div></div>
+    <div class="table-wrap">
+        <table class="table table-sm">
+            <thead><tr><th>Date</th><th>User</th><th th:if="${me.role.name() == 'ADMINISTRATOR'}">Business</th><th>Action</th><th>Record</th><th>Details</th><th>IP address</th></tr></thead>
+            <tbody>
+            <tr th:each="a : ${page.content}"
+                th:classappend="${a.action == 'LOGIN_FAILED' or a.action == 'ACCOUNT_LOCKED' or a.action == 'SALE_VOIDED' or a.action == 'ACCESS_DENIED'} ? 'table-warning'">
+                <td th:text="${@fmt.dateTime(a.createdAt, zone)}"></td>
+                <td th:text="${a.user?.email}"></td>
+                <td th:if="${me.role.name() == 'ADMINISTRATOR'}" th:text="${a.business?.name}"></td>
+                <td th:text="${a.action}"></td>
+                <td th:text="${a.entityType != null} ? |${a.entityType} ${a.entityId ?: ''}| : ''"></td>
+                <td class="small text-break" th:text="${a.details}"></td>
+                <td th:text="${a.ipAddress}"></td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="7" class="empty-state">No entries.</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-2" th:insert="~{fragments/ui :: pager('/audit')}"></div>
+</main>
+</body>
+</html>

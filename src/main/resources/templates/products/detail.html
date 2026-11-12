@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Product | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1 th:text="${product.name}">Product</h1>
+            <p th:text="|${product.manufactured ? 'Made in-house' : 'Bought for resale'} · ${product.category?.name ?: 'No category'} · SKU ${product.sku ?: '-'}|"></p></div>
+        <div class="d-flex gap-2" sec:authorize="hasAnyRole('OWNER','MANAGER')">
+            <a class="btn btn-outline-primary" th:href="@{/pricing(productId=${product.id})}">Pricing calculator</a>
+            <a class="btn btn-outline-primary" th:href="@{/forecasts/product/{id}(id=${product.id})}">Demand history</a>
+            <a class="btn btn-primary" th:href="@{/products/{id}/edit(id=${product.id})}">Edit</a>
+        </div>
+    </div>
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-md-3"><div class="card kpi accent"><div class="label">Selling price (excl. tax)</div>
+            <div class="value" th:text="|${currency} ${@fmt.money(product.sellingPrice)}|"></div></div></div>
+        <div class="col-6 col-md-3"><div class="card kpi"><div class="label">Finished stock</div>
+            <div class="value" th:classappend="${product.belowMinimum} ? 'text-negative'" th:text="|${@fmt.qty(product.currentQuantity)} ${product.saleUnit.code}|"></div></div></div>
+        <th:block th:if="${analysis}">
+            <div class="col-6 col-md-3"><div class="card kpi"><div class="label" th:text="${product.manufactured} ? 'Current recipe unit cost' : 'Average purchase cost'"></div>
+                <div class="value" th:text="${@fmt.cost(analysis.unitCost)}"></div></div></div>
+            <div class="col-6 col-md-3"><div class="card kpi gold"><div class="label">Margin / markup at current price</div>
+                <div class="value" th:classappend="${analysis.belowCost} ? 'text-negative'"
+                     th:text="|${@fmt.pct(analysis.margin)} / ${@fmt.pct(analysis.markup)}|"></div>
+                <div class="sub text-negative" th:if="${analysis.belowCost}">Price is below the unit cost</div></div></div>
+        </th:block>
+    </div>
+
+    <th:block th:if="${canSeeMoney and product.manufactured}">
+        <div class="row g-3">
+            <div class="col-lg-6" th:if="${cost}">
+                <div class="card"><div class="card-header">Current cost of one batch (active recipe)</div>
+                    <div class="card-body">
+                        <dl class="row cost-breakdown mb-0">
+                            <dt class="col-7">Ingredients (incl. waste)</dt><dd class="col-5" th:text="${@fmt.money(cost.ingredientCost)}"></dd>
+                            <dt class="col-7">Labour</dt><dd class="col-5" th:text="${@fmt.money(cost.labourCost)}"></dd>
+                            <dt class="col-7">Packaging</dt><dd class="col-5" th:text="${@fmt.money(cost.packagingCost)}"></dd>
+                            <dt class="col-7">Utilities</dt><dd class="col-5" th:text="${@fmt.money(cost.utilitiesCost)}"></dd>
+                            <dt class="col-7">Overhead</dt><dd class="col-5" th:text="${@fmt.money(cost.overheadCost)}"></dd>
+                            <dt class="col-7 fw-bold">Batch cost</dt><dd class="col-5 fw-bold" th:text="${@fmt.money(cost.batchCost)}"></dd>
+                            <dt class="col-7" th:text="|Output: ${@fmt.qty(cost.outputQuantity)} units|"></dt><dd class="col-5"></dd>
+                            <dt class="col-7 fw-bold">Unit cost</dt><dd class="col-5 fw-bold" th:text="${@fmt.cost(cost.unitCost)}"></dd>
+                        </dl>
+                        <p class="small text-muted mt-2 mb-0">Uses today's average ingredient costs. Past batches and sales keep the costs stored at the time.</p>
+                    </div></div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card"><div class="card-header d-flex justify-content-between">
+                    <span>Recipe versions</span>
+                    <a sec:authorize="hasAnyRole('OWNER','MANAGER')" th:href="@{/recipes/new(productId=${product.id})}">New version</a></div>
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Version</th><th>Name</th><th>Output</th><th>Effective</th><th></th></tr></thead>
+                        <tbody>
+                        <tr th:each="v : ${versions}">
+                            <td><a th:href="@{/recipes/{id}(id=${v.id})}" th:text="|v${v.versionNo}|"></a></td>
+                            <td th:text="${v.name}"></td>
+                            <td th:text="|${@fmt.qty(v.batchOutputQty)} ${v.outputUnit.code}|"></td>
+                            <td th:text="${@fmt.date(v.effectiveFrom)}"></td>
+                            <td><span th:if="${v.active}" class="status status-ACTIVE">Active</span></td>
+                        </tr>
+                        <tr th:if="${versions.isEmpty()}"><td colspan="5" class="empty-state">No recipe yet. Create one to calculate costs and record production.</td></tr>
+                        </tbody>
+                    </table></div>
+            </div>
+        </div>
+    </th:block>
+</main>
+</body>
+</html>

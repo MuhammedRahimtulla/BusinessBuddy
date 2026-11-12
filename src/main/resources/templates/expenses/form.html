@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Expense | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head"><div><h1 th:text="${id == null} ? 'New expense' : 'Edit expense'">Expense</h1>
+        <p>For example, if a baker's wages are already in recipe labour, record only the remaining salary costs here.</p></div></div>
+    <div class="card form-card"><div class="card-body">
+        <form th:action="${id == null} ? @{/expenses} : @{/expenses/{id}(id=${id})}" th:object="${form}" method="post" novalidate>
+            <div th:replace="~{fragments/ui :: errors('form')}"></div>
+            <div class="row g-3">
+                <div class="col-md-4"><label class="form-label required" for="categoryId">Category</label>
+                    <select class="form-select" th:field="*{categoryId}" required th:errorclass="is-invalid"><option value="">Choose</option>
+                        <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option></select>
+                    <div class="invalid-feedback" th:errors="*{categoryId}"></div></div>
+                <div class="col-md-8"><label class="form-label required" for="description">Description</label>
+                    <input class="form-control" th:field="*{description}" maxlength="200" required th:errorclass="is-invalid">
+                    <div class="invalid-feedback" th:errors="*{description}"></div></div>
+                <div class="col-md-4"><label class="form-label required" for="amount" th:text="|Amount (${currency})|">Amount</label>
+                    <input class="form-control" type="number" step="0.01" min="0.01" th:field="*{amount}" required th:errorclass="is-invalid">
+                    <div class="invalid-feedback" th:errors="*{amount}"></div></div>
+                <div class="col-md-4"><label class="form-label required" for="expenseDate">Date</label>
+                    <input class="form-control" type="date" th:field="*{expenseDate}" required></div>
+                <div class="col-md-4"><label class="form-label" for="paymentMethod">Payment method</label>
+                    <select class="form-select" th:field="*{paymentMethod}"><option value="">Not recorded</option>
+                        <option th:each="m : ${methods}" th:value="${m}" th:text="${m}"></option></select></div>
+                <div class="col-md-6"><label class="form-label" for="supplierId">Supplier (payee)</label>
+                    <select class="form-select" th:field="*{supplierId}"><option value="">None</option>
+                        <option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}"></option></select></div>
+                <div class="col-md-6"><label class="form-label" for="referenceNo">Reference number</label>
+                    <input class="form-control" th:field="*{referenceNo}" maxlength="50"></div>
+                <div class="col-12"><label class="form-label" for="notes">Notes</label>
+                    <textarea class="form-control" th:field="*{notes}" rows="2"></textarea></div>
+            </div>
+            <div class="mt-3 d-flex gap-2"><button class="btn btn-primary" type="submit">Save</button>
+                <a class="btn btn-outline-secondary" th:href="@{/expenses}">Cancel</a></div>
+        </form>
+    </div></div>
+</main>
+</body>
+</html>

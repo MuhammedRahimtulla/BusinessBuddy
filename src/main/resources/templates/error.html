@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<!--/* Fallback used by Spring Boot's /error endpoint (for example for 404 on an unknown URL). */-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Error | BusinessBuddy</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="empty-state">
+    <h1 th:text="${status == 404} ? 'Page not found' : 'Something went wrong'">Error</h1>
+    <p>The page could not be shown.</p>
+    <a class="btn btn-outline-primary" th:href="@{/}">Back to BusinessBuddy</a>
+</main>
+</body>
+</html>

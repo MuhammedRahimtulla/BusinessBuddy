@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>All user accounts | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head"><div><h1>All user accounts</h1><p>The Administrator manages accounts but does not edit business transactions.</p></div></div>
+    <div class="table-wrap">
+        <table class="table table-sm align-middle">
+            <thead><tr><th>Email</th><th>Name</th><th>Business</th><th>Role</th><th>Active</th><th>Locked</th><th>Last login</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="u : ${users}">
+                <td th:text="${u.email}"></td><td th:text="${u.fullName}"></td>
+                <td th:text="${u.business?.name}"></td><td th:text="${u.role}"></td>
+                <td th:text="${u.active} ? 'Yes' : 'No'"></td>
+                <td th:text="${u.isLocked(now)} ? 'Yes' : 'No'"></td>
+                <td th:text="${@fmt.dateTime(u.lastLoginAt, zone)}"></td>
+                <td>
+                    <div class="d-flex gap-1" th:if="${u.role.name() != 'ADMINISTRATOR'}">
+                        <form th:action="@{/admin/users/{id}/lock(id=${u.id})}" method="post">
+                            <input type="hidden" name="locked" th:value="${!u.isLocked(now)}">
+                            <button class="btn btn-sm btn-outline-secondary" type="submit" th:text="${u.isLocked(now)} ? 'Unlock' : 'Lock'"></button></form>
+                        <form th:action="@{/admin/users/{id}/active(id=${u.id})}" method="post">
+                            <input type="hidden" name="active" th:value="${!u.active}">
+                            <button class="btn btn-sm btn-outline-secondary" type="submit" th:text="${u.active} ? 'Deactivate' : 'Activate'"></button></form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

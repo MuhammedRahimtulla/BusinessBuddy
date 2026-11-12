@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<!--/*
+  BusinessBuddy page layout. Every page passes its <title> and <main> into this fragment:
+  <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+  Menu items follow the role matrix in Table 4.37. Hiding an item is never the only
+  protection: the same rules are enforced on the server.
+*/-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(title, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:replace="${title}">BusinessBuddy</title>
+    <link rel="icon" th:href="@{/images/logo.svg}" type="image/svg+xml">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<a class="visually-hidden-focusable skip-link" href="#main-content">Skip to main content</a>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Main menu">
+        <a class="brand" th:href="@{/}">
+            <img th:src="@{/images/logo.svg}" alt="" width="32" height="32">
+            <span>BusinessBuddy</span>
+        </a>
+        <nav class="side-nav">
+            <th:block sec:authorize="hasAnyRole('OWNER','MANAGER','EMPLOYEE')">
+                <a th:href="@{/dashboard}" class="nav-item"><i class="bi bi-speedometer2"></i> Dashboard</a>
+
+                <div class="nav-group">Inventory</div>
+                <a th:href="@{/ingredients}" class="nav-item"><i class="bi bi-basket"></i> Ingredients</a>
+                <a th:href="@{/inventory}" class="nav-item"><i class="bi bi-box-seam"></i> Stock levels</a>
+                <a th:href="@{/inventory/movements}" class="nav-item"><i class="bi bi-arrow-left-right"></i> Movements</a>
+                <a th:href="@{/inventory/waste}" class="nav-item"><i class="bi bi-trash3"></i> Record waste</a>
+                <a sec:authorize="hasAnyRole('OWNER','MANAGER')" th:href="@{/inventory/adjust}" class="nav-item"><i class="bi bi-sliders"></i> Adjust stock</a>
+
+                <th:block sec:authorize="hasAnyRole('OWNER','MANAGER')">
+                    <div class="nav-group">Purchasing</div>
+                    <a th:href="@{/suppliers}" class="nav-item"><i class="bi bi-truck"></i> Suppliers</a>
+                    <a th:href="@{/purchases}" class="nav-item"><i class="bi bi-receipt"></i> Purchases</a>
+                </th:block>
+
+                <div class="nav-group">Products</div>
+                <a th:href="@{/products}" class="nav-item"><i class="bi bi-tags"></i> Products and recipes</a>
+                <a sec:authorize="hasAnyRole('OWNER','MANAGER')" th:href="@{/pricing}" class="nav-item"><i class="bi bi-calculator"></i> Pricing calculator</a>
+                <a th:href="@{/production}" class="nav-item"><i class="bi bi-fire"></i> Production</a>
+
+                <div class="nav-group">Sales</div>
+                <a th:href="@{/sales/new}" class="nav-item"><i class="bi bi-cart-plus"></i> New sale</a>
+                <a th:href="@{/sales}" class="nav-item"><i class="bi bi-clock-history"></i> Sales history</a>
+                <a th:href="@{/customers}" class="nav-item"><i class="bi bi-people"></i> Customers</a>
+
+                <th:block sec:authorize="hasAnyRole('OWNER','MANAGER')">
+                    <div class="nav-group">Finance and analysis</div>
+                    <a th:href="@{/expenses}" class="nav-item"><i class="bi bi-wallet2"></i> Expenses</a>
+                    <a th:href="@{/reports}" class="nav-item"><i class="bi bi-bar-chart-line"></i> Reports</a>
+                    <a th:href="@{/forecasts}" class="nav-item"><i class="bi bi-graph-up-arrow"></i> Forecasts</a>
+                    <a th:href="@{/insights}" class="nav-item"><i class="bi bi-lightbulb"></i> Insights</a>
+
+                    <div class="nav-group">Settings</div>
+                    <a sec:authorize="hasRole('OWNER')" th:href="@{/settings/business}" class="nav-item"><i class="bi bi-building-gear"></i> Business profile</a>
+                    <a th:href="@{/settings/categories}" class="nav-item"><i class="bi bi-folder2"></i> Categories</a>
+                    <a sec:authorize="hasRole('OWNER')" th:href="@{/settings/users}" class="nav-item"><i class="bi bi-person-gear"></i> Users</a>
+                    <a sec:authorize="hasRole('OWNER')" th:href="@{/audit}" class="nav-item"><i class="bi bi-journal-text"></i> Audit log</a>
+                </th:block>
+            </th:block>
+            <th:block sec:authorize="hasRole('ADMINISTRATOR')">
+                <div class="nav-group">Administration</div>
+                <a th:href="@{/admin/users}" class="nav-item"><i class="bi bi-people-fill"></i> All user accounts</a>
+                <a th:href="@{/audit}" class="nav-item"><i class="bi bi-journal-text"></i> Audit log</a>
+            </th:block>
+        </nav>
+    </aside>
+
+    <div class="app-main">
+        <header class="topbar">
+            <button class="btn btn-icon d-lg-none" type="button" id="menu-toggle" aria-controls="sidebar"
+                    aria-expanded="false" aria-label="Open menu"><i class="bi bi-list"></i></button>
+            <div class="topbar-title">
+                <span class="business-name" th:text="${businessName ?: 'BusinessBuddy administration'}">Business</span>
+            </div>
+            <div class="topbar-actions">
+                <a th:if="${me != null and me.businessId != null}" th:href="@{/notifications}" class="btn btn-icon position-relative"
+                   aria-label="Notifications">
+                    <i class="bi bi-bell"></i>
+                    <span th:if="${notificationCount > 0}" class="badge rounded-pill bg-danger bell-count"
+                          th:text="${notificationCount}">3</span>
+                </a>
+                <div class="dropdown" th:if="${me != null}">
+                    <button class="btn btn-user dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i>
+                        <span class="user-name" th:text="${me.fullName}">User</span>
+                        <span class="role-chip" th:text="${#strings.capitalize(#strings.toLowerCase(me.role))}">Owner</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-key"></i> My profile and password</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post">
+                                <button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right"></i> Log out</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <div th:if="${sampleData}" class="sample-banner" role="note">
+            <i class="bi bi-info-circle"></i>
+            <strong>Sample data.</strong> This business contains generated demonstration data. It is not a real business record.
+        </div>
+
+        <div class="page-body" id="main-content">
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="status">
+                <span th:text="${successMessage}">Saved.</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${errorMessage}">Error.</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:replace="${content}">Page content</div>
+        </div>
+
+        <footer class="app-footer">
+            <span>BusinessBuddy: AI-Powered Business Cost and Inventory Management System</span>
+            <span>Forecasts and insights are estimates. Figures are not professional accounting advice.</span>
+        </footer>
+    </div>
+</div>
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/webjars/chart.js/4.4.1/dist/chart.umd.js}"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

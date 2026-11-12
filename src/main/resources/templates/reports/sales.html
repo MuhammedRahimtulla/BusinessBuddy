@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Sales report | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1>Sales report</h1><p th:text="|${period.from} to ${period.to}|"></p></div>
+        <div class="d-flex gap-2 align-items-end">
+            <form th:replace="~{fragments/ui :: period('/reports/sales')}"></form>
+            <a class="btn btn-sm btn-outline-secondary" th:href="@{/reports/export/sales(from=${period.from}, to=${period.to})}"><i class="bi bi-download"></i> CSV</a>
+        </div>
+    </div>
+    <div class="row g-3">
+        <div class="col-lg-5">
+            <h2>By payment method</h2>
+            <div class="table-wrap mb-3"><table class="table table-sm">
+                <thead><tr><th>Method</th><th class="num">Sales</th><th class="num">Revenue (excl. tax)</th></tr></thead>
+                <tbody><tr th:each="p : ${payments}"><td th:text="${p.method}"></td><td class="num" th:text="${p.count}"></td>
+                    <td class="num" th:text="${@fmt.money(p.revenue)}"></td></tr>
+                <tr th:if="${payments.isEmpty()}"><td colspan="3" class="empty-state">No confirmed sales.</td></tr></tbody></table></div>
+        </div>
+        <div class="col-lg-7">
+            <h2>By product</h2>
+            <div class="card mb-3"><div class="card-body chart-box">
+                <canvas class="bb-chart" data-type="bar" role="img" aria-label="Units sold by product"
+                        th:data-labels="${#strings.listJoin(report.byProduct.![name], '|')}"
+                        data-s1-label="Units sold" th:data-s1="${#strings.listJoin(report.byProduct.![units], '|')}"></canvas>
+            </div></div>
+        </div>
+    </div>
+    <h2>Voided sales</h2>
+    <div class="table-wrap"><table class="table table-sm">
+        <thead><tr><th>Sale</th><th>Date</th><th>Voided by</th><th>Reason</th><th class="num">Total</th></tr></thead>
+        <tbody><tr th:each="s : ${voided}">
+            <td><a th:href="@{/sales/{id}(id=${s.id})}" th:text="${s.saleNumber}"></a></td>
+            <td th:text="${@fmt.dateTime(s.saleDate, zone)}"></td><td th:text="${s.voidedBy.fullName}"></td>
+            <td th:text="${s.voidReason}"></td><td class="num" th:text="${@fmt.money(s.total)}"></td></tr>
+        <tr th:if="${voided.isEmpty()}"><td colspan="5" class="empty-state">No voided sales in this period.</td></tr></tbody></table></div>
+</main>
+</body>
+</html>

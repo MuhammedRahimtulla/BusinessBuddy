@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Ingredients | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1>Ingredients and raw materials</h1><p>Stock is held in each ingredient's base unit.</p></div>
+        <a sec:authorize="hasAnyRole('OWNER','MANAGER')" class="btn btn-primary" th:href="@{/ingredients/new}"><i class="bi bi-plus-lg"></i> New ingredient</a>
+    </div>
+    <form class="row g-2 mb-3" method="get" th:action="@{/ingredients}" role="search">
+        <div class="col-sm-6 col-md-4">
+            <label class="visually-hidden" for="q">Search</label>
+            <input class="form-control" id="q" name="q" th:value="${q}" placeholder="Search by name">
+        </div>
+        <div class="col-auto form-check mt-2 ms-2">
+            <input class="form-check-input" type="checkbox" id="low" name="low" value="true" th:checked="${low}">
+            <label class="form-check-label" for="low">Below minimum only</label>
+        </div>
+        <div class="col-auto"><button class="btn btn-outline-primary" type="submit">Filter</button></div>
+    </form>
+    <div class="table-wrap">
+        <table class="table table-hover align-middle">
+            <thead><tr><th>Name</th><th>Category</th><th class="num">In stock</th><th class="num">Minimum</th>
+                <th class="num" th:if="${canSeeMoney}">Avg cost / unit</th><th class="num" th:if="${canSeeMoney}">Value</th><th>Status</th></tr></thead>
+            <tbody>
+            <tr th:each="i : ${page.content}">
+                <td><a th:href="@{/ingredients/{id}(id=${i.id})}" th:text="${i.name}">Flour</a></td>
+                <td th:text="${i.category?.name}"></td>
+                <td class="num" th:classappend="${i.belowMinimum} ? 'text-negative'" th:text="|${@fmt.qty(i.currentQuantity)} ${i.baseUnit.code}|"></td>
+                <td class="num" th:text="${@fmt.qty(i.minStockLevel)}"></td>
+                <td class="num" th:if="${canSeeMoney}" th:text="${@fmt.cost(i.averageUnitCost)}"></td>
+                <td class="num" th:if="${canSeeMoney}" th:text="${@fmt.money(i.stockValue())}"></td>
+                <td><span th:if="${!i.active}" class="status status-CANCELLED">Inactive</span>
+                    <span th:if="${i.active and i.belowMinimum}" class="badge badge-observed">Low stock</span></td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="7" class="empty-state">No ingredients found.</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-2" th:insert="~{fragments/ui :: pager('/ingredients?q=' + ${q} + '&low=' + ${low})}"></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Purchase report | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1>Purchase and supplier history</h1><p th:text="|Received ${period.from} to ${period.to}|"></p></div>
+        <form th:replace="~{fragments/ui :: period('/reports/purchases')}"></form>
+    </div>
+    <div class="table-wrap"><table class="table table-sm">
+        <thead><tr><th>Received</th><th>Supplier</th><th>Reference</th><th class="num">Subtotal</th><th class="num">Discount</th>
+            <th class="num">Additional</th><th class="num">Total</th></tr></thead>
+        <tbody><tr th:each="p : ${purchases}">
+            <td th:text="${@fmt.date(p.receivedDate)}"></td><td th:text="${p.supplier.name}"></td>
+            <td><a th:href="@{/purchases/{id}(id=${p.id})}" th:text="${p.referenceNo}"></a></td>
+            <td class="num" th:text="${@fmt.money(p.subtotal)}"></td><td class="num" th:text="${@fmt.money(p.discountAmount)}"></td>
+            <td class="num" th:text="${@fmt.money(p.additionalCosts)}"></td><td class="num" th:text="${@fmt.money(p.totalAmount)}"></td></tr>
+        <tr th:if="${purchases.isEmpty()}"><td colspan="7" class="empty-state">No purchases received in this period.</td></tr></tbody></table></div>
+    <p class="small text-muted mt-2">Ingredient price history is shown on each ingredient's page.</p>
+</main>
+</body>
+</html>

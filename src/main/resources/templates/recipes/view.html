@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Recipe version | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1 th:text="|${version.product.name}: recipe version ${version.versionNo}|">Recipe</h1>
+            <p><span th:text="${version.name}"></span> · effective <span th:text="${@fmt.date(version.effectiveFrom)}"></span>
+                <span th:if="${version.active}" class="status status-ACTIVE ms-1">Active</span></p></div>
+        <div class="d-flex gap-2">
+            <form th:if="${!version.active}" th:action="@{/recipes/{id}/activate(id=${version.id})}" method="post">
+                <button class="btn btn-outline-primary" type="submit">Make active</button></form>
+            <a class="btn btn-primary" th:href="@{/recipes/new(productId=${version.product.id}, from=${version.id})}">New version from this</a>
+        </div>
+    </div>
+    <div class="row g-3">
+        <div class="col-12">
+            <div class="table-wrap">
+                <table class="table">
+                    <thead><tr><th>Ingredient</th><th class="num">Quantity</th><th class="num">Waste</th><th class="num">Base qty incl. waste</th>
+                        <th class="num">Avg cost / base unit</th><th class="num">Line cost</th></tr></thead>
+                    <tbody>
+                    <tr th:each="l, st : ${cost.lines}">
+                        <td th:text="${l.ingredientName}"></td>
+                        <td class="num" th:text="|${@fmt.qty(version.ingredients[st.index].quantity)} ${version.ingredients[st.index].unit.code}|"></td>
+                        <td class="num" th:text="${@fmt.pct(l.wastePercent)}"></td>
+                        <td class="num" th:text="${@fmt.qty(l.quantityWithWaste)}"></td>
+                        <td class="num" th:text="${@fmt.cost(l.averageUnitCost)}"></td>
+                        <td class="num" th:text="${@fmt.money(l.lineCost)}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mt-2 text-muted" th:if="${version.preparationNotes}" th:text="${version.preparationNotes}"></p>
+        </div>
+        <div class="col-lg-6">
+            <div class="card"><div class="card-header">Current cost estimate</div><div class="card-body">
+                <dl class="row cost-breakdown mb-0">
+                    <dt class="col-7">Ingredients (incl. waste)</dt><dd class="col-5" th:text="${@fmt.money(cost.ingredientCost)}"></dd>
+                    <dt class="col-7">Labour</dt><dd class="col-5" th:text="${@fmt.money(cost.labourCost)}"></dd>
+                    <dt class="col-7">Packaging</dt><dd class="col-5" th:text="${@fmt.money(cost.packagingCost)}"></dd>
+                    <dt class="col-7">Utilities</dt><dd class="col-5" th:text="${@fmt.money(cost.utilitiesCost)}"></dd>
+                    <dt class="col-7" th:text="|Overhead (fixed ${@fmt.money(version.overheadFixed)} + ${@fmt.pct(version.overheadPercent)} of ingredients)|"></dt>
+                    <dd class="col-5" th:text="${@fmt.money(cost.overheadCost)}"></dd>
+                    <dt class="col-7 fw-bold">Batch cost</dt><dd class="col-5 fw-bold" th:text="${@fmt.money(cost.batchCost)}"></dd>
+                    <dt class="col-7" th:text="|Batch output (${version.outputUnit.code})|"></dt><dd class="col-5" th:text="${@fmt.qty(version.batchOutputQty)}"></dd>
+                    <dt class="col-7 fw-bold">Unit cost</dt><dd class="col-5 fw-bold" th:text="${@fmt.cost(cost.unitCost)}"></dd>
+                </dl>
+            </div></div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

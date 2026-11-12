@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Stock reconciliation | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head"><div><h1>Stock reconciliation</h1>
+        <p>The stock shown on screens is a cached total. This check compares it with the sum of the item's ledger movements.</p></div></div>
+    <div class="table-wrap">
+        <table class="table table-sm">
+            <thead><tr><th>Type</th><th>Item</th><th class="num">Stock shown</th><th class="num">Ledger total</th><th>Result</th></tr></thead>
+            <tbody><tr th:each="r : ${rows}">
+                <td th:text="${r.itemType}"></td><td th:text="${r.name}"></td>
+                <td class="num" th:text="${@fmt.qty(r.cached)}"></td><td class="num" th:text="${@fmt.qty(r.ledger)}"></td>
+                <td><span th:if="${r.matches()}" class="status status-CONFIRMED">Matches</span>
+                    <span th:unless="${r.matches()}" class="status status-VOIDED">Mismatch</span></td></tr></tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

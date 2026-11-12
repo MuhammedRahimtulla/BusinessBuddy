@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Profitability | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1>Profitability report</h1><p th:text="|${period.from} to ${period.to} · confirmed sales only|"></p></div>
+        <div class="d-flex gap-2 align-items-end">
+            <form th:replace="~{fragments/ui :: period('/reports/profitability')}"></form>
+            <a class="btn btn-sm btn-outline-secondary" th:href="@{/reports/export/profitability(from=${period.from}, to=${period.to})}"><i class="bi bi-download"></i> CSV</a>
+        </div>
+    </div>
+    <div class="row g-3 mb-3">
+        <div class="col-lg-5">
+            <div class="table-wrap">
+                <table class="table">
+                    <tbody>
+                    <tr><th>Revenue (net of discounts, excluding tax)</th><td class="num" th:text="${@fmt.money(report.revenue)}"></td></tr>
+                    <tr><th>Discounts given</th><td class="num" th:text="${@fmt.money(report.discounts)}"></td></tr>
+                    <tr><th>Tax collected (not revenue)</th><td class="num" th:text="${@fmt.money(report.taxCollected)}"></td></tr>
+                    <tr><th>Cost of goods sold</th><td class="num" th:text="${@fmt.money(report.cogs)}"></td></tr>
+                    <tr><th>Gross profit</th><td class="num fw-bold" th:text="${@fmt.money(report.grossProfit)}"></td></tr>
+                    <tr><th>Gross margin</th><td class="num" th:text="${@fmt.pct(report.grossMargin)}"></td></tr>
+                    <tr><th>Operating expenses</th><td class="num" th:text="${@fmt.money(report.operatingExpenses)}"></td></tr>
+                    <tr><th>Net operating result</th><td class="num fw-bold" th:classappend="${@fmt.negative(report.netOperatingResult)} ? 'text-negative'"
+                                                         th:text="${@fmt.money(report.netOperatingResult)}"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="small text-muted mt-2">Not a substitute for professional accounting or tax advice.</p>
+        </div>
+        <div class="col-lg-7">
+            <div class="card"><div class="card-header">Last 6 months</div><div class="card-body chart-box">
+                <canvas class="bb-chart" data-type="line" role="img" aria-label="Revenue, gross profit and net operating result by month"
+                        th:data-labels="${#strings.listJoin(trend.![month], '|')}"
+                        data-s1-label="Revenue" th:data-s1="${#strings.listJoin(trend.![revenue], '|')}"
+                        data-s2-label="Gross profit" th:data-s2="${#strings.listJoin(trend.![grossProfit], '|')}"
+                        data-s3-label="Net operating result" th:data-s3="${#strings.listJoin(trend.![netOperatingResult], '|')}"></canvas>
+            </div></div>
+        </div>
+    </div>
+    <h2>Product profitability</h2>
+    <div class="table-wrap">
+        <table class="table table-sm">
+            <thead><tr><th>Product</th><th class="num">Units</th><th class="num">Revenue</th><th class="num">COGS</th>
+                <th class="num">Gross profit</th><th class="num">Gross margin</th></tr></thead>
+            <tbody>
+            <tr th:each="r : ${report.byProduct}">
+                <td th:text="${r.name}"></td><td class="num" th:text="${@fmt.qty(r.units)}"></td>
+                <td class="num" th:text="${@fmt.money(r.revenue)}"></td><td class="num" th:text="${@fmt.money(r.cogs)}"></td>
+                <td class="num" th:classappend="${@fmt.negative(r.grossProfit)} ? 'text-negative'" th:text="${@fmt.money(r.grossProfit)}"></td>
+                <td class="num" th:text="${@fmt.pct(r.grossMargin)}"></td>
+            </tr>
+            <tr th:if="${report.byProduct.isEmpty()}"><td colspan="6" class="empty-state">No confirmed sales in this period.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

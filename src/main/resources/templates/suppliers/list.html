@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Suppliers | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <h1>Suppliers</h1>
+        <a class="btn btn-primary" th:href="@{/suppliers/new}"><i class="bi bi-plus-lg"></i> New supplier</a>
+    </div>
+    <form class="row g-2 mb-3" method="get" th:action="@{/suppliers}" role="search">
+        <div class="col-sm-6 col-md-4"><label class="visually-hidden" for="q">Search</label>
+            <input class="form-control" id="q" name="q" th:value="${q}" placeholder="Search by name"></div>
+        <div class="col-auto"><button class="btn btn-outline-primary" type="submit">Search</button></div>
+    </form>
+    <div class="table-wrap">
+        <table class="table table-hover align-middle">
+            <thead><tr><th>Name</th><th>Contact</th><th>Email</th><th>Phone</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="s : ${page.content}">
+                <td th:text="${s.name}"></td><td th:text="${s.contactPerson}"></td>
+                <td th:text="${s.email}"></td><td th:text="${s.phone}"></td>
+                <td><span class="status" th:classappend="${s.active} ? 'status-ACTIVE' : 'status-CANCELLED'" th:text="${s.active} ? 'Active' : 'Inactive'"></span></td>
+                <td><a th:href="@{/suppliers/{id}/edit(id=${s.id})}">Edit</a> ·
+                    <a th:href="@{/purchases(supplierId=${s.id})}">Purchases</a></td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="6" class="empty-state">No suppliers yet.</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-2" th:insert="~{fragments/ui :: pager('/suppliers?q=' + ${q})}"></div>
+</main>
+</body>
+</html>

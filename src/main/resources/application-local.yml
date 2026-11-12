@@ -1,0 +1,19 @@
+# Profile "local": runs BusinessBuddy on one computer with an embedded PostgreSQL server.
+# Data is kept in ./data/postgres between runs. No PostgreSQL installation or Docker needed.
+businessbuddy:
+  embedded-db:
+    data-dir: ${BUSINESSBUDDY_DATA_DIR:./data/postgres}
+    port: ${BUSINESSBUDDY_DB_PORT:54329}
+  demo-data: ${BUSINESSBUDDY_DEMO_DATA:true}
+  # Sign-in details for the generated sample business and the local Administrator.
+  # They are for a local demonstration copy only; production takes them from environment variables.
+  demo:
+    password: ${BUSINESSBUDDY_DEMO_PASSWORD:SampleBakery#2026}
+    days: 120
+  admin:
+    email: ${BUSINESSBUDDY_ADMIN_EMAIL:admin@businessbuddy.test}
+    password: ${BUSINESSBUDDY_ADMIN_PASSWORD:LocalAdmin#2026}
+
+spring:
+  thymeleaf:
+    cache: false

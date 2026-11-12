@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Purchase | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head"><div><h1 th:text="${id == null} ? 'New purchase' : 'Edit draft purchase'">Purchase</h1>
+        <p>Enter prices excluding tax. Delivery costs and discounts are shared across lines by value when the purchase is received.</p></div></div>
+    <form th:action="${id == null} ? @{/purchases} : @{/purchases/{id}(id=${id})}" th:object="${form}" method="post" novalidate>
+        <div th:replace="~{fragments/ui :: errors('form')}"></div>
+        <div class="card mb-3"><div class="card-body row g-3">
+            <div class="col-md-4"><label class="form-label required" for="supplierId">Supplier</label>
+                <select class="form-select" th:field="*{supplierId}" required th:errorclass="is-invalid">
+                    <option value="">Choose a supplier</option>
+                    <option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}"></option>
+                </select><div class="invalid-feedback" th:errors="*{supplierId}"></div></div>
+            <div class="col-md-4"><label class="form-label required" for="referenceNo">Invoice or reference number</label>
+                <input class="form-control" th:field="*{referenceNo}" maxlength="50" required th:errorclass="is-invalid">
+                <div class="invalid-feedback" th:errors="*{referenceNo}"></div></div>
+            <div class="col-md-4"><label class="form-label required" for="purchaseDate">Purchase date</label>
+                <input class="form-control" type="date" th:field="*{purchaseDate}" required></div>
+        </div></div>
+
+        <div class="table-wrap mb-2">
+            <table class="table lines-table">
+                <thead><tr><th class="item-col">Item</th><th>Quantity</th><th>Unit</th><th>Unit cost</th><th>Expiry date</th></tr></thead>
+                <tbody id="purchase-lines">
+                <tr th:each="line, st : *{lines}">
+                    <td class="item-col"><label class="visually-hidden" th:for="|lines${st.index}.itemKey|">Item</label>
+                        <select class="form-select form-select-sm" th:field="*{lines[__${st.index}__].itemKey}">
+                            <option value="">Choose an item</option>
+                            <optgroup label="Ingredients">
+                                <option th:each="i : ${ingredients}" th:value="|I:${i.id}|" th:text="|${i.name} (${i.baseUnit.code})|"></option>
+                            </optgroup>
+                            <optgroup label="Resale products">
+                                <option th:each="p : ${resaleProducts}" th:value="|P:${p.id}|" th:text="|${p.name} (${p.saleUnit.code})|"></option>
+                            </optgroup>
+                        </select></td>
+                    <td><input class="form-control form-control-sm" type="number" step="0.001" min="0.001" aria-label="Quantity"
+                               th:field="*{lines[__${st.index}__].quantity}"></td>
+                    <td><select class="form-select form-select-sm" aria-label="Unit" th:field="*{lines[__${st.index}__].unitCode}">
+                        <option value="">Stock unit</option>
+                        <option th:each="u : ${units}" th:value="${u.code}" th:text="${u.code}"></option>
+                    </select></td>
+                    <td><input class="form-control form-control-sm" type="number" step="0.0001" min="0" aria-label="Unit cost"
+                               th:field="*{lines[__${st.index}__].unitCost}"></td>
+                    <td><input class="form-control form-control-sm" type="date" aria-label="Expiry date"
+                               th:field="*{lines[__${st.index}__].expiryDate}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-primary mb-3" data-add-line="purchase-lines"><i class="bi bi-plus"></i> Add line</button>
+
+        <div class="card mb-3"><div class="card-body row g-3">
+            <div class="col-md-3"><label class="form-label" for="discountAmount">Discount</label>
+                <input class="form-control" type="number" step="0.01" min="0" th:field="*{discountAmount}"></div>
+            <div class="col-md-3"><label class="form-label" for="additionalCosts">Additional costs (delivery)</label>
+                <input class="form-control" type="number" step="0.01" min="0" th:field="*{additionalCosts}"></div>
+            <div class="col-md-6"><label class="form-label" for="notes">Notes</label>
+                <input class="form-control" th:field="*{notes}"></div>
+        </div></div>
+        <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Save draft</button>
+            <a class="btn btn-outline-secondary" th:href="@{/purchases}">Cancel</a></div>
+    </form>
+</main>
+</body>
+</html>

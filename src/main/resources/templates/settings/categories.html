@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Categories | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head"><h1>Categories</h1></div>
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card"><div class="card-header">Product and ingredient categories</div>
+                <table class="table table-sm mb-0"><thead><tr><th>Name</th><th>Type</th></tr></thead>
+                    <tbody><tr th:each="c : ${categories}"><td th:text="${c.name}"></td><td th:text="${c.type}"></td></tr>
+                    <tr th:if="${categories.isEmpty()}"><td colspan="2" class="empty-state">No categories yet.</td></tr></tbody></table>
+                <div class="card-body border-top">
+                    <form th:action="@{/settings/categories}" th:object="${form}" method="post" class="row g-2 align-items-end">
+                        <div class="col"><label class="form-label required" for="name">New category</label>
+                            <input class="form-control" th:field="*{name}" maxlength="80" required></div>
+                        <div class="col-auto"><label class="form-label" for="type">Type</label>
+                            <select class="form-select" th:field="*{type}"><option th:each="t : ${types}" th:value="${t}" th:text="${t}"></option></select></div>
+                        <div class="col-auto"><button class="btn btn-primary" type="submit">Add</button></div>
+                    </form>
+                </div></div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card"><div class="card-header">Expense categories</div>
+                <ul class="list-group list-group-flush"><li class="list-group-item" th:each="c : ${expenseCategories}" th:text="${c.name}"></li></ul>
+                <div class="card-body border-top">
+                    <form th:action="@{/settings/expense-categories}" method="post" class="row g-2 align-items-end">
+                        <div class="col"><label class="form-label required" for="expenseName">New expense category</label>
+                            <input class="form-control" id="expenseName" name="name" maxlength="60" required></div>
+                        <div class="col-auto"><button class="btn btn-primary" type="submit">Add</button></div>
+                    </form>
+                </div></div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

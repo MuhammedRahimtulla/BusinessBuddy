@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Problem | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="empty-state">
+        <i class="bi bi-exclamation-triangle display-5"></i>
+        <h1 class="mt-2">The request could not be completed</h1>
+        <p th:text="${message ?: 'Something went wrong. The problem has been logged.'}">Message</p>
+        <a class="btn btn-outline-primary" th:href="@{/}">Back to the start page</a>
+    </div>
+</main>
+</body>
+</html>

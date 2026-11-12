@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Insights | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1>Business insights</h1>
+            <p>Produced by fixed rules from your recorded figures and forecasts. No language model is used, so no figure is invented.</p></div>
+        <form th:replace="~{fragments/ui :: period('/insights')}"></form>
+    </div>
+    <div class="row g-3">
+        <div class="col-lg-6" th:each="ins : ${insights}">
+            <div class="card h-100" th:classappend="${ins.nature.name() == 'PREDICTED'} ? 'estimate-panel'"><div class="card-body">
+                <span class="badge mb-2" th:classappend="${ins.nature.name() == 'PREDICTED'} ? 'badge-predicted' : 'badge-calculated'"
+                      th:text="${ins.nature.name() == 'PREDICTED'} ? 'Prediction (estimate)' : 'Calculated from recorded data'"></span>
+                <p class="mb-2 fw-semibold" th:text="${ins.text}"></p>
+                <p class="small text-muted mb-0" th:text="|Period: ${ins.period} · ${ins.supportingFigure}|"></p>
+            </div></div>
+        </div>
+        <div class="col-12 empty-state" th:if="${insights.isEmpty()}">No insights for this period. Insights appear when margins fall below target, costs rise, stock may run out or demand changes.</div>
+    </div>
+</main>
+</body>
+</html>

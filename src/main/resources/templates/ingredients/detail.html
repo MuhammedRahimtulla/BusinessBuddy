@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Ingredient | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1 th:text="${ingredient.name}">Flour</h1>
+            <p th:text="|${ingredient.category?.name ?: 'No category'} · base unit ${ingredient.baseUnit.name}|"></p></div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary" th:href="@{/inventory/waste(item='I:' + ${ingredient.id})}">Record waste</a>
+            <a sec:authorize="hasAnyRole('OWNER','MANAGER')" class="btn btn-outline-primary" th:href="@{/inventory/adjust(item='I:' + ${ingredient.id})}">Adjust stock</a>
+            <a sec:authorize="hasAnyRole('OWNER','MANAGER')" class="btn btn-primary" th:href="@{/ingredients/{id}/edit(id=${ingredient.id})}">Edit</a>
+        </div>
+    </div>
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-md-3"><div class="card kpi accent"><div class="label">In stock</div>
+            <div class="value" th:classappend="${ingredient.belowMinimum} ? 'text-negative'" th:text="|${@fmt.qty(ingredient.currentQuantity)} ${ingredient.baseUnit.code}|"></div></div></div>
+        <div class="col-6 col-md-3"><div class="card kpi"><div class="label">Minimum</div>
+            <div class="value" th:text="${@fmt.qty(ingredient.minStockLevel)}"></div></div></div>
+        <div class="col-6 col-md-3" th:if="${canSeeMoney}"><div class="card kpi"><div class="label">Average cost per base unit</div>
+            <div class="value" th:text="${@fmt.cost(ingredient.averageUnitCost)}"></div><div class="sub">Weighted average</div></div></div>
+        <div class="col-6 col-md-3" th:if="${canSeeMoney}"><div class="card kpi gold"><div class="label">Stock value</div>
+            <div class="value" th:text="${@fmt.money(ingredient.stockValue())}"></div></div></div>
+    </div>
+
+    <h2>Recent stock movements</h2>
+    <div class="table-wrap mb-4">
+        <table class="table table-sm">
+            <thead><tr><th>Date</th><th>Type</th><th class="num">Change</th><th class="num" th:if="${canSeeMoney}">Unit cost</th><th>Reason</th><th>By</th></tr></thead>
+            <tbody>
+            <tr th:each="m : ${movements}">
+                <td th:text="${@fmt.dateTime(m.movementDate, zone)}"></td>
+                <td th:text="${m.type}"></td>
+                <td class="num" th:classappend="${@fmt.negative(m.quantityChange)} ? 'text-negative' : 'text-positive'" th:text="${@fmt.qty(m.quantityChange)}"></td>
+                <td class="num" th:if="${canSeeMoney}" th:text="${@fmt.cost(m.unitCost)}"></td>
+                <td th:text="${m.reason}"></td>
+                <td th:text="${m.createdBy.fullName}"></td>
+            </tr>
+            <tr th:if="${movements.isEmpty()}"><td colspan="6" class="empty-state">No movements yet.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <th:block th:if="${canSeeMoney}">
+        <h2>Purchase price history</h2>
+        <div class="table-wrap">
+            <table class="table table-sm">
+                <thead><tr><th>Received</th><th>Supplier</th><th>Reference</th><th class="num">Quantity</th>
+                    <th class="num">Unit cost (as invoiced)</th><th class="num">Landed cost / base unit</th></tr></thead>
+                <tbody>
+                <tr th:each="pi : ${priceHistory}">
+                    <td th:text="${@fmt.date(pi.purchase.receivedDate)}"></td>
+                    <td th:text="${pi.purchase.supplier.name}"></td>
+                    <td><a th:href="@{/purchases/{id}(id=${pi.purchase.id})}" th:text="${pi.purchase.referenceNo}"></a></td>
+                    <td class="num" th:text="|${@fmt.qty(pi.quantity)} ${pi.unit.code}|"></td>
+                    <td class="num" th:text="${@fmt.cost(pi.unitCost)}"></td>
+                    <td class="num" th:text="${@fmt.cost(pi.landedUnitCost)}"></td>
+                </tr>
+                <tr th:if="${priceHistory.isEmpty()}"><td colspan="6" class="empty-state">No purchases received yet.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </th:block>
+</main>
+</body>
+</html>

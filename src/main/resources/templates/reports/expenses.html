@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>Expense report | BusinessBuddy</title></head>
+<body>
+<main>
+    <div class="page-head">
+        <div><h1>Expense report</h1><p th:text="|${period.from} to ${period.to}|"></p></div>
+        <div class="d-flex gap-2 align-items-end">
+            <form th:replace="~{fragments/ui :: period('/reports/expenses')}"></form>
+            <a class="btn btn-sm btn-outline-secondary" th:href="@{/reports/export/expenses(from=${period.from}, to=${period.to})}"><i class="bi bi-download"></i> CSV</a>
+        </div>
+    </div>
+    <div class="row g-3">
+        <div class="col-lg-5"><div class="table-wrap"><table class="table table-sm">
+            <thead><tr><th>Category</th><th class="num">Total</th></tr></thead>
+            <tbody><tr th:each="r : ${rows}"><td th:text="${r.category}"></td><td class="num" th:text="${@fmt.money(r.total)}"></td></tr>
+            <tr th:if="${rows.isEmpty()}"><td colspan="2" class="empty-state">No expenses in this period.</td></tr></tbody></table></div></div>
+        <div class="col-lg-7"><div class="card"><div class="card-header">Expenses by month</div><div class="card-body chart-box">
+            <canvas class="bb-chart" data-type="bar" role="img" aria-label="Expenses by month"
+                    th:data-labels="${#strings.listJoin(trend.![month], '|')}"
+                    data-s1-label="Expenses" th:data-s1="${#strings.listJoin(trend.![expenses], '|')}"></canvas></div></div></div>
+    </div>
+</main>
+</body>
+</html>
